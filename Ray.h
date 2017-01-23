@@ -7,7 +7,7 @@ using namespace std;
 #IFNDEF RAY_H
 #DEFINE RAY_H
 
-public class Ray {
+class Ray {
 	public:
 		Ray(Point start, Vector dir) : startPoint(start), direction(dir) {}
 		Ray() : Ray(Point(), Vector()) {}

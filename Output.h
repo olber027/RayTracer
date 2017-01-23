@@ -19,7 +19,7 @@ enum OutputType {
 //<r> <g> <b> <r> <g> <b> etc...
 //<r> <g> <b> <r> <g> <b> etc...
 //etc...
-public class Output {
+class Output {
 
 	public: 
 	
@@ -28,6 +28,7 @@ public class Output {
 			filePath = path; 
 			imgHeight = height;
 			imgWidth = width;
+			img = new Color[height];
 			for(int i = 0; i < height; i++) {
 				img[i] = new Color[width]; 
 			}
@@ -37,17 +38,21 @@ public class Output {
 			for(int i = 0; i < imgHeight; i++) {
 				delete img[i];
 			}
+			delete img;
 		}
 		
 		void setColor(int x, int y, Color color) {
-			//check this!
 			img[x][y] = color; 
 		}
 		
 		void writeImage() {
-			if(outputType == OutputType.ToFile) {
+			if(outputType == OutputType::ToFile) {
 				writeImageToFile();
 			}
+		}
+
+		void setOutputType(OutputType type) {
+			outputType = type;
 		}
 		
 		void writeImageToFile() {
@@ -68,7 +73,7 @@ public class Output {
 	
 		OutputType outputType;
 		string filePath; 
-		Color[][] img; 
+		Color** img;
 		int imgHeight, imgWidth;
 };
 

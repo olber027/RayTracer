@@ -4,7 +4,7 @@
 #IFNDEF UTILS_H
 #DEFINE UTILS_H
 
-public class Utilities {
+class Utilities {
 
 	public:
 	

@@ -1,10 +1,10 @@
-#include "Poiint.h"
+#include "Point.h"
 #include "Vector.h"
 
 #IFNDEF CAMERA_H
 #DEFINE CAMERA_H
 
-public class Camera {
+class Camera {
 
 	public: 
 		//TODO: lots more functionality that needs to be added here. 

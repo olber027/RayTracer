@@ -7,6 +7,7 @@
 #include <cmath>
 #include <string> 
 #include <Vector>
+#include <vector>
 
 #IFNDEF RAYTRACER_H
 #DEFINE RAYTRACER_H
@@ -14,7 +15,7 @@
 int MAX_REFLECTION_DEPTH = 0;
 
 
-public class RayTracer {
+class RayTracer {
 
 
 	public: 
@@ -60,7 +61,7 @@ public class RayTracer {
 
 		Color findColorForRay(Ray ray, vector<Geometry*> sceneGeometry, int depth) {
 			
-			vector<Geometry*> intersectingObjects; 
+			svector<Geometry*> intersectingObjects = vector<Geometry*>();
 			Geometry* obj;
 			
 			for(int i = 0; i < sceneGeometry.size(); i++) {
@@ -76,7 +77,7 @@ public class RayTracer {
 			if(obj != null) {
 				if(obj->isReflective() && depth < MAX_REFLECTION_DEPTH) {
 					Ray reflectedRay = obj->findReflectedRay(ray);
-					return findColorForRay(reflectedRay, sceneGeometry, depth+1) // + some other numbers based on an equation I don't have right now;
+					return findColorForRay(reflectedRay, sceneGeometry, depth+1); // + some other numbers based on an equation I don't have right now;
 				} else {
 					return obj->getColorAt(intersectionPoint);
 				}
