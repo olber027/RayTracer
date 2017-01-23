@@ -4,8 +4,8 @@
 
 using namespace std;
 
-#IFNDEF RAY_H
-#DEFINE RAY_H
+#ifndef RAY_H
+#define RAY_H
 
 class Ray {
 	public:
@@ -26,4 +26,4 @@ class Ray {
 
 };
 
-#ENDIF 
+#endif

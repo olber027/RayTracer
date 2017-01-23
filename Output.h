@@ -1,7 +1,11 @@
 #include "Color.h"
+#include <string>
+#include <fstream>
 
-#IFNDEF OUTPUT_H
-#DEFINE OUTPUT_H
+#ifndef OUTPUT_H
+#define OUTPUT_H
+
+using namespace std;
 
 enum OutputType {
 
@@ -24,11 +28,11 @@ class Output {
 	public: 
 	
 		Output(string path, int height, int width) {
-			outputType = OutPutType.toFile; 
+			outputType = OutputType::ToFile;
 			filePath = path; 
 			imgHeight = height;
 			imgWidth = width;
-			img = new Color[height];
+			img = new Color*[height];
 			for(int i = 0; i < height; i++) {
 				img[i] = new Color[width]; 
 			}
@@ -56,12 +60,13 @@ class Output {
 		}
 		
 		void writeImageToFile() {
-			ofstream out = ofstream(filePath);
+			ofstream out(filePath);
+
 			out << "P6" << endl;
-			out << width << " " << height << endl;
+			out << imgWidth << " " << imgHeight << endl;
 			out << "255" << endl;
-			for(int i = 0; i < width; i++) {
-				for(int j = 0; j < height; j++) {
+			for(int i = 0; i < imgWidth; i++) {
+				for(int j = 0; j < imgHeight; j++) {
 					out << img[i][j].getFormattedColorString() << " ";
 				}
 				out << endl;
@@ -77,4 +82,4 @@ class Output {
 		int imgHeight, imgWidth;
 };
 
-#ENDIF
+#endif

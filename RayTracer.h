@@ -9,8 +9,8 @@
 #include <Vector>
 #include <vector>
 
-#IFNDEF RAYTRACER_H
-#DEFINE RAYTRACER_H
+#ifndef RAYTRACER_H
+#define RAYTRACER_H
 
 int MAX_REFLECTION_DEPTH = 0;
 
@@ -18,21 +18,12 @@ int MAX_REFLECTION_DEPTH = 0;
 class RayTracer {
 
 
-	public: 
+	public:
 	
-		RayTracer() {
-			//TODO
-		}
-	
-		RayTracer(string filePath) {
-			configDataFromFile(filePath);
-		}
-		
-		void setOutputDestination(string filePath) {
-			if(output != null) {
-				output.dispose();
-			}
-			output = new Output(filePath);
+		RayTracer(string outputFilePath, string configDataFilePath) {
+            int height, width;
+            readConfigData(configDataFilePath, height, width, &camera);
+			output = Output(outputFilePath, height, width);
 		}
 		
 		//does all the logic for the tracer and sends the result to the 
@@ -40,7 +31,7 @@ class RayTracer {
 		void trace() {
 			//for each pixel
 			for(int i = 0; i < camera.getWidth(); i++) {
-				for(int j = 0; j < camera.GetHeight(); j++) {
+				for(int j = 0; j < camera.getHeight(); j++) {
 					//create a ray
 					Ray ray = camera.getRayThrough(i, j); 
 					//set color for that pixel to findColorForRay()
@@ -51,6 +42,10 @@ class RayTracer {
 			}
 		}
 
+        void writeToOutput() {
+            output.writeImage();
+        }
+
 	private: 
 
 		Camera camera;
@@ -60,21 +55,23 @@ class RayTracer {
 		
 
 		Color findColorForRay(Ray ray, vector<Geometry*> sceneGeometry, int depth) {
-			
-			svector<Geometry*> intersectingObjects = vector<Geometry*>();
+
+            vector<Geometry*> intersectingObjects = vector<Geometry*>();
 			Geometry* obj;
-			
+			Point intersectionPoint = NULL;
+
 			for(int i = 0; i < sceneGeometry.size(); i++) {
 				obj = sceneGeometry[i]; 
-				Point intersectionPoint = obj->intersectsAt(ray); 
-				if(intersectionPoint != null) {
-					intersectingObjects.pushBack(obj); 
+				intersectionPoint = obj->intersectsAt(ray);
+				if(intersectionPoint != NULL) {
+					intersectingObjects.push_back(obj);
 				}
 			}
 			
-			obj = Utilities.findClosestObject(camera.origin, intersectingObjects); 
-			
-			if(obj != null) {
+			obj = Utilities::findClosestObject(camera.getOrigin(), intersectingObjects);
+			intersectionPoint = obj->intersectsAt(ray);
+
+			if(obj != NULL) {
 				if(obj->isReflective() && depth < MAX_REFLECTION_DEPTH) {
 					Ray reflectedRay = obj->findReflectedRay(ray);
 					return findColorForRay(reflectedRay, sceneGeometry, depth+1); // + some other numbers based on an equation I don't have right now;
@@ -85,11 +82,36 @@ class RayTracer {
 			
 			return backgroundColor;
 		}
-		
-		void configDataFromFile(string filePath) {
-			//TODO
-			//read in values in some sort of pre-defined manner...
-		}
+
+        void readConfigData(string filePath, int& height, int& width, Camera* camera) {
+            ifstream in = ifstream(filePath);
+            (*camera) = Camera();
+            in >> height >> width;
+            camera->setHeight(height);
+            camera->setWidth(width);
+
+            double x, y, z;
+            in >> x >> y >> z;
+            camera->setOrigin(Point(x,y,z));
+            in >> x >> y >> z;
+            camera->setXAxis(Vector(x,y,z));
+            in >> x >> y >> z;
+            camera->setYAxis(Vector(x,y,z));
+            in >> x >> y >> z;
+            camera->setZAxis(Vector(x,y,z));
+            double angle;
+            in >> angle;
+            camera->setViewAngle(angle);
+            int nearClippingDistance, farClippingDistance;
+            in >> nearClippingDistance >> farClippingDistance;
+            camera->setNearClippingDistance(nearClippingDistance);
+            camera->setFarClippingDistance(farClippingDistance);
+
+            int r, g, b;
+            in >> r >> g >> b;
+            backgroundColor = Color(r, g, b);
+
+        }
 };
 
-#ENDIF
+#endif

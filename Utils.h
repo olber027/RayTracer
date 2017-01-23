@@ -1,17 +1,19 @@
 #include "Point.h"
 #include "Geometry.h"
+#include <vector>
 
-#IFNDEF UTILS_H
-#DEFINE UTILS_H
+#ifndef UTILS_H
+#define UTILS_H
 
-class Utilities {
+static class Utilities {
 
 	public:
 	
-		static Geometry* findClosestObject(Point point, Vector<Geometry*> objects) {
+		static Geometry* findClosestObject(Point point, vector<Geometry*> objects) {
 			//TODO
+            return NULL;
 		}
 
 };
 
-#ENDIF
+#endif

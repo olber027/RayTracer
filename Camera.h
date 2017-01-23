@@ -1,8 +1,9 @@
 #include "Point.h"
 #include "Vector.h"
+#include "Ray.h"
 
-#IFNDEF CAMERA_H
-#DEFINE CAMERA_H
+#ifndef CAMERA_H
+#define CAMERA_H
 
 class Camera {
 
@@ -30,7 +31,17 @@ class Camera {
 		Point getOrigin() {
 			return origin;
 		}
-		
+
+		void setHeight(int h) { height = h; }
+		void setWidth(int w) { width = w; }
+		void setOrigin(Point o) { origin = o; }
+		void setXAxis(Vector x) { xAxis = x; }
+		void setYAxis(Vector y) { yAxis = y; }
+		void setZAxis(vector z) { zAxis = z; }
+		void setViewAngle(double angle) { viewAngle = angle; }
+		void setNearClippingDistance(int dist) { nearClippingDistance = dist; }
+		void setFarClippingDistance(int dist) { farClippingDistance = dist; }
+
 	private: 
 		int height; 
 		int width; 
@@ -44,4 +55,4 @@ class Camera {
 		
 };
 
-#ENDIF
+#endif

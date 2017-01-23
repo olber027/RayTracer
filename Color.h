@@ -1,7 +1,8 @@
 #include <string>
+#include <sstream>
 
-#IFNDEF COLOR_H
-#DEFINE COLOR_H
+#ifndef COLOR_H
+#define COLOR_H
 
 class Color {
 
@@ -14,6 +15,13 @@ class Color {
 			b = 0;
 			alpha = 0;
 		}
+
+        Color(int r, int g, int b) {
+            this->r = r;
+            this->g = g;
+            this->b = b;
+            this->alpha = 1.0;
+        }
 
 		Color(int r, int g, int b, double alpha) {
 			this->r = r;
@@ -42,7 +50,9 @@ class Color {
 		// returns a string of the format "r g b"
 		string getFormattedColorString()
 		{
-			return to_string(r) + " " + to_string(g) + " " + to_string(b);
+            stringstream stream;
+            stream << r << " " << g << " " << b;
+			return stream.str();
 		}
 		
 		Color getColorApplyingAlpha(Color background) {
@@ -63,4 +73,4 @@ class Color {
 
 };
 
-#ENDIF
+#endif
