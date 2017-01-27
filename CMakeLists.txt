@@ -3,5 +3,5 @@ project(RayTracer)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES prettyPicture.cpp Camera.h Color.h Output.h Ray.h RayTracer.h Utils.h)
+set(SOURCE_FILES prettyPicture.cpp Camera.h Color.h Output.h Ray.h RayTracer.h Utils.h Point.h Vector.h)
 add_executable(RayTracer ${SOURCE_FILES})
