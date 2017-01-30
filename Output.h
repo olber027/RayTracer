@@ -25,7 +25,9 @@ enum OutputType {
 //etc...
 class Output {
 
-	public: 
+	public:
+
+		Output() { }
 	
 		Output(string path, int height, int width) {
 			outputType = OutputType::ToFile;

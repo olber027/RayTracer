@@ -7,8 +7,7 @@
 
 class Camera {
 
-	public: 
-		//TODO: lots more functionality that needs to be added here. 
+	public:
 	
 		Camera() {
 			//TODO
@@ -42,12 +41,14 @@ class Camera {
 		void setWidth(int w) { width = w; }
 		void setOrigin(Point o) { origin = o; update();}
         //the zAxis is aligned along "view", the xAxis is
-        //orthogonal to Z and in angle "theta"
+        //orthogonal to Z and in angle "theta" (theta is given in radians)
         void setAxes(Vector view, double theta) {
             zAxis = view*-1;
-
-
-
+			zAxis.normalize();
+			yAxis = zAxis.cross(Vector(std::cos(theta),std::sin(theta),0));
+			yAxis.normalize();
+			xAxis = yAxis.cross(zAxis);
+			xAxis.normalize();
             update();
         }
 
@@ -62,7 +63,7 @@ class Camera {
 		Vector xAxis;
 		Vector yAxis;
 		Vector zAxis; 
-		double viewAngle;
+		double viewAngle; //in radians
 		int nearClippingDistance;
 		int farClippingDistance;
         //four corners of the "screen"
@@ -73,7 +74,12 @@ class Camera {
 
 
         void update() {
-            //TODO
+			double X = nearClippingDistance*std::tan(viewAngle/2.0)*2.0;
+			double Y = ((double) height/(double) width) * X;
+			double magnitude = sqrt(((X/2)*(X/2)) + ((Y/2)*Y/2));
+			double angle = std::atan(Y/X);
+			Point center = origin + zAxis*-1*nearClippingDistance;
+
         }
 };
 

@@ -56,6 +56,7 @@ class RayTracer {
 
 		Color findColorForRay(Ray ray, vector<Geometry*> sceneGeometry, int depth) {
 
+			/*
             vector<Geometry*> intersectingObjects = vector<Geometry*>();
 			Geometry* obj;
 			Point intersectionPoint = NULL;
@@ -79,7 +80,7 @@ class RayTracer {
 					return obj->getColorAt(intersectionPoint);
 				}
 			}
-			
+			*/
 			return backgroundColor;
 		}
 
@@ -91,14 +92,12 @@ class RayTracer {
             camera->setWidth(width);
 
             double x, y, z;
+			double cameraRotationAngle;
             in >> x >> y >> z;
             camera->setOrigin(Point(x,y,z));
             in >> x >> y >> z;
-            camera->setXAxis(Vector(x,y,z));
-            in >> x >> y >> z;
-            camera->setYAxis(Vector(x,y,z));
-            in >> x >> y >> z;
-            camera->setZAxis(Vector(x,y,z));
+            in >> cameraRotationAngle;
+			camera->setAxes(Vector(x,y,z), cameraRotationAngle);
             double angle;
             in >> angle;
             camera->setViewAngle(angle);
