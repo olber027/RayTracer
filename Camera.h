@@ -76,9 +76,6 @@ class Camera {
         void update() {
 			double X = nearClippingDistance*std::tan(viewAngle/2.0)*2.0;
 			double Y = ((double) height/(double) width) * X;
-			double magnitude = sqrt(((X/2)*(X/2)) + ((Y/2)*Y/2));
-			double angle = std::atan(Y/X);
-			Point center = origin + zAxis*-1*nearClippingDistance;
 
         }
 };
