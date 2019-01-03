@@ -31,7 +31,7 @@ public:
 
     Point(const Point& p) {
         size = p.size;
-        vals = new double[size];
+        allocateMemory();
         for(int i = 0; i < size; i++) {
             vals[i] = p.vals[i];
         }
@@ -39,18 +39,22 @@ public:
 
     Point(const Point* p) {
         size = p->size;
-        vals = new double[size];
+        allocateMemory();
         for(int i = 0; i < size; i++) {
             vals[i] = p->vals[i];
         }
     }
 
     ~Point() {
-        deallocateMemory();
+        destroy();
     }
 
     void destroy() {
-        deallocateMemory();
+        if(vals != NULL) {
+            delete [] vals;
+        }
+        vals = NULL;
+        size = 0;
     }
 
     void allocateMemory() {
@@ -60,14 +64,6 @@ public:
         } else {
             vals = new double[size];
         }
-    }
-
-    void deallocateMemory() {
-        if(vals != NULL) {
-            delete [] vals;
-        }
-        vals = NULL;
-        size = 0;
     }
 
     int getSize() {

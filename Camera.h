@@ -1,6 +1,7 @@
 #include "Point.h"
 #include "Vector.h"
 #include "Ray.h"
+#include "Matrix.h"
 
 #ifndef CAMERA_H
 #define CAMERA_H
@@ -25,21 +26,13 @@ class Camera {
             return result;
 		}
 
-		int getWidth() {
-			return height;
-		}
-		
-		int getHeight() {
-			return width;
-		}
-		
-		Point getOrigin() {
-			return origin;
-		}
+		int getWidth() { return height; }
+		int getHeight() { return width; }
+		Point getOrigin() {	return origin; }
 
-		void setHeight(int h) { height = h; }
-		void setWidth(int w) { width = w; }
-		void setOrigin(Point o) { origin = o; update();}
+		void setHeight(int h) { height = h; update(); }
+		void setWidth(int w) { width = w; update(); }
+		void setOrigin(Point o) { origin = o; update(); }
         //the zAxis is aligned along "view", the xAxis is
         //orthogonal to Z and in angle "theta" (theta is given in radians)
         void setAxes(Vector view, double theta) {
@@ -51,6 +44,17 @@ class Camera {
 			xAxis.normalize();
             update();
         }
+
+		void setAxes(Vector x, Vector y, Vector z, double theta) {
+			zAxis = z;
+			zAxis.normalize();
+			xAxis = x;
+			xAxis.normalize();
+			yAxis = y;
+			yAxis.normalize();
+			viewAngle = theta;
+			update();
+		}
 
 		void setViewAngle(double angle) { viewAngle = angle; update(); }
 		void setNearClippingDistance(int dist) { nearClippingDistance = dist; update(); }
@@ -74,10 +78,19 @@ class Camera {
 
 
         void update() {
-			double X = nearClippingDistance*std::tan(viewAngle/2.0)*2.0;
+			double X = nearClippingDistance*tan(viewAngle/2.0)*2.0;
 			double Y = ((double) height/(double) width) * X;
-
+			topLeft = transformPoint(Point(X/-2, Y/2, 0));
+			topRight = transformPoint(Point(X/2, Y/2, 0));
+			bottomLeft = transformPoint(Point(X/-2, Y/-2, 0));
+			bottomRight = transformPoint(Point(X/2, Y/-2, 0));
         }
+
+		Point transformPoint(Point p) {
+			Point result = Point(3);
+			Matrix translation;
+			return result;
+		}
 };
 
 #endif

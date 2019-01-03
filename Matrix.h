@@ -413,13 +413,13 @@ public:
     friend ostream& operator<<(ostream& out, Matrix m) {
         out.setf(ios::fixed);
         out.precision(3);
-        out << "[ ";
+        out << "[" << endl << "  ";
         for(int i = 0; i < m.colLength(); i++) {
             if(i != 0)
                 out << "  ";
-            out << m.getRowAsVector(i) << endl;
+            out << Vector(m.rowLength(), m.mat[i]) << endl;
         }
-        out << "  ]" << endl;
+        out << "]" << endl;
         return out;
     }
 
@@ -1156,7 +1156,7 @@ public:
     //this is designed purely for rotation, however, and does not provide the capability of
     //adding a translation component without some work on your part (read: adding another row
     //and column to the result of this function call)
-    Matrix get3dRotationMatrix(double rads, string axis) {
+    static Matrix get3dRotationMatrix(double rads, string axis) {
         Matrix rot;
         if(axis == "x") {
             rot.addRow(Vector(1,0,0));

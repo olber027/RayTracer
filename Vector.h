@@ -40,21 +40,17 @@ public:
 
     //copy constructor
     Vector(const Vector& v) {
-        if(size != v.size) {
-            destroy();
-            size = v.size;
-            allocateMemory();
-        }
+        size = v.size;
+        allocateMemory();
+
         for(int i = 0; i < size; i++)
             vals[i] = v.vals[i];
     }
 
     Vector(const Vector* v) {
-        if(size != v->size) {
-            destroy();
-            size = v->size;
-            allocateMemory();
-        }
+        size = v->size;
+        allocateMemory();
+
         for(int i = 0; i < size; i++)
             vals[i] = v->vals[i];
     }
@@ -99,8 +95,8 @@ public:
         if(size != v.size) {
             destroy();
             size = v.size;
+            allocateMemory();
         }
-        allocateMemory();
         for(int i = 0; i < v.size; i++) {
             vals[i] = v[i];
         }
