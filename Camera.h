@@ -1,7 +1,7 @@
-#include "Point.h"
-#include "Vector.h"
+#include "Point_X.h"
+#include "Vector_X.h"
 #include "Ray.h"
-#include "Matrix.h"
+#include "Matrix_MxN.h"
 
 #ifndef CAMERA_H
 #define CAMERA_H

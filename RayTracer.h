@@ -2,7 +2,7 @@
 #include "Geometry.h"
 #include "Color.h"
 #include "Camera.h"
-#include "Output.h"
+#include "Image.h"
 #include "Utils.h"
 #include <cmath>
 #include <string> 
