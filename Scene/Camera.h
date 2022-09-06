@@ -19,13 +19,14 @@ namespace scene
         [[nodiscard]] Vector_3 X() const { return m_zAxis.cross(m_yAxis).normalize(); }
         [[nodiscard]] Vector_3 Y() const { return m_yAxis; }
         [[nodiscard]] Vector_3 Z() const { return m_zAxis; }
+        [[nodiscard]] Point_3 getPosition() const { return m_position; }
 
-        Camera& move(const Vector_3& translation_vector) {
+        Camera& translate(const Vector_3& translation_vector) {
             m_position += translation_vector;
             return (*this);
         }
 
-        Camera& moveTo(const Point_3& new_position) {
+        Camera& translateTo(const Point_3& new_position) {
             m_position = new_position;
             return (*this);
         }

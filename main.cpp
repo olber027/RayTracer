@@ -55,7 +55,6 @@ int main(int argc, char** argv) {
         output_config_file >> output_json;
     }
     Image image(output_json);
-    std::string output_file_path = output_json.at("file_path");
 
     double VIEWPORT_HEIGHT = 2.0;
     double VIEWPORT_WIDTH = image.aspectRatio() * VIEWPORT_HEIGHT;
@@ -78,6 +77,7 @@ int main(int argc, char** argv) {
         }
     }
 
+    std::string output_file_path = output_json.at("file_path");
     std::unique_ptr<ImageWriter_I> image_writer = ImageWriterBuilder::createWriter(getSuffix(output_file_path));
     image_writer->write(image, output_file_path);
 

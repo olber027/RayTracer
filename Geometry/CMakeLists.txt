@@ -5,4 +5,4 @@ add_library(geometry
         Sphere.h
         Sphere.cpp)
 target_include_directories(geometry PUBLIC .)
-target_link_libraries(geometry PUBLIC linear_algebra_core)
+target_link_libraries(geometry PUBLIC linear_algebra_core nlohmann_json)

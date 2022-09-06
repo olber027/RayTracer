@@ -5,6 +5,7 @@
 #include "Sphere.h"
 #include "Point_X.h"
 #include "Vector_X.h"
+#include "json.h"
 
 namespace geometry {
     using namespace linear_algebra_core;
@@ -28,6 +29,22 @@ namespace geometry {
 
     std::optional<Point_3> Sphere::intersectsAt(const Ray& ray) const
     {
-        return std::optional<Point_3>();
+        return {};
+    }
+
+    void Sphere::fromJson(const nlohmann::json& json_node)
+    {
+        // TODO: Verify this works.
+        std::vector<double> center = json_node.at("center");
+        if(center.size() != 3) {
+            throw std::invalid_argument("center must be specified in the form: [X, Y, Z]");
+        }
+        m_center = Point_3(center);
+
+        double radius = json_node.at("radius");
+        if(radius < 0) {
+            throw std::invalid_argument("radius must be greater than 0");
+        }
+        m_radius = radius;
     }
 }
