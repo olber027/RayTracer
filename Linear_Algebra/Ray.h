@@ -7,12 +7,12 @@ namespace linear_algebra_core
     class Ray
     {
     private:
-        Point_3  origin;
-        Vector_3 direction;
+        Point_3  m_origin;
+        Vector_3 m_direction;
 
     public:
         Ray() = default;
-        explicit Ray(const Point_3& start, const Vector_3& dir) : origin(start), direction(dir) { }
+        explicit Ray(const Point_3& start, const Vector_3& dir) : m_origin(start), m_direction(dir) { }
         ~Ray() = default;
         Ray(const Ray& other) = default;
         Ray(Ray&& other) noexcept = default;
@@ -22,7 +22,7 @@ namespace linear_algebra_core
         template<typename T>
         Point_3 operator*(T scalar) const {
             static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
-            return origin + (direction * scalar);
+            return m_origin + (m_direction * scalar);
         }
 
         template<typename T>
@@ -32,12 +32,12 @@ namespace linear_algebra_core
 
         [[nodiscard]] Point_3 getOrigin() const
         {
-            return origin;
+            return m_origin;
         }
 
         [[nodiscard]] Vector_3 getDirection() const
         {
-            return direction;
+            return m_direction;
         }
     };
 }

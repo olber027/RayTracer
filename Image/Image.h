@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "Color.h"
+#include "json.h"
 
 namespace output
 {
@@ -9,13 +10,33 @@ namespace output
     class Image
     {
     private:
-        std::vector<std::vector<Color>> pixels;
-        int color_range;
+        std::vector<std::vector<Color>> m_pixels;
+        int m_colorRange;
 
     public:
 
         Image() : Image(0, 0, 255) { }
-        Image(unsigned int width, unsigned int height, int colorRange) : pixels(height, std::vector<Color>(width, Color())), color_range(colorRange) { }
+        Image(unsigned int width, unsigned int height, int colorRange) : m_pixels(height, std::vector<Color>(width, Color())), m_colorRange(colorRange) { }
+        Image(nlohmann::json json_file) {
+            int width, height, colorRange;
+            try {
+                width = json_file.at("width").get<int>();
+            } catch(std::exception& e) {
+                throw std::invalid_argument("Could not find the required 'width' key");
+            }
+            try {
+                height = json_file.at("height").get<int>();
+            } catch(std::exception& e) {
+                throw std::invalid_argument("Could not find the required 'height' key");
+            }
+            try {
+                colorRange = json_file.at("color_range").get<int>();
+            } catch(std::exception& e) {
+                throw std::invalid_argument("Could not find the required 'color_range' key");
+            }
+            m_pixels     = std::vector<std::vector<Color>>(height, std::vector<Color>(width, Color()));
+            m_colorRange = colorRange;
+        }
 
         ~Image() = default;
 
@@ -28,17 +49,23 @@ namespace output
         Image& operator=(Image&& other) noexcept = default;
 
         [[nodiscard]] Color at(size_t x, size_t y) const {
-            return pixels.at(y).at(x);
+            return m_pixels.at(y).at(x);
         }
 
         [[nodiscard]] Color& at(size_t x, size_t y) {
-            return pixels.at(y).at(x);
+            return m_pixels.at(y).at(x);
         }
 
-        [[nodiscard]] unsigned int width() const { return pixels.at(0).size(); }
-        [[nodiscard]] unsigned int height() const { return pixels.size(); }
+        [[nodiscard]] int width() const { return static_cast<int>(m_pixels.at(0).size()); }
+        [[nodiscard]] int height() const { return static_cast<int>(m_pixels.size()); }
+        [[nodiscard]] double aspectRatio() const { return static_cast<double>(width()) / static_cast<double>(height()); }
 
-        [[nodiscard]] int getColorRange() const { return color_range; }
-        void setColorRange(int newRange) { color_range = newRange; }
+        [[nodiscard]] int getColorRange() const { return m_colorRange; }
+        void setColorRange(int newRange) { m_colorRange = newRange; }
+
+        void from_json(const nlohmann::json& json_file)
+        {
+            *this = Image(json_file);
+        }
     };
 }

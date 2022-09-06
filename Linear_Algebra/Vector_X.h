@@ -21,29 +21,29 @@ namespace linear_algebra_core
     class Vector_X
     {
     private:
-        std::array<double, N> values;
+        std::array<double, N> m_values;
 
     public:
-        Vector_X() : values{} { }
+        Vector_X() : m_values{} { }
 
         template <typename... InitialValues>
         Vector_X(InitialValues... initialValues)
         {
             static_assert(N == sizeof...(InitialValues), "Incorrect number of parameters given to constructor");
             static_assert((std::is_convertible_v<InitialValues, double> && ...), "Parameters must be implicitly convertible to doubles");
-            values = std::array<double, N>{initialValues...};
+            m_values = std::array<double, N>{initialValues...};
         }
 
-        explicit Vector_X(const std::array<double, N>& initialValues) : values{initialValues} { }
-        explicit Vector_X(const std::array<double, N>&& initialValues) : values{initialValues} { }
+        explicit Vector_X(const std::array<double, N>& initialValues) : m_values{initialValues} { }
+        explicit Vector_X(const std::array<double, N>&& initialValues) : m_values{initialValues} { }
         explicit Vector_X(const double (&initialValues)[N]) {
-            std::copy_n(std::begin(initialValues), N, std::begin(values));
+            std::copy_n(std::begin(initialValues), N, std::begin(m_values));
         }
         explicit Vector_X(const std::vector<double>& initialValues) {
             if(initialValues.size() != N) {
                 throw std::out_of_range("Vector_X constructor expected a std::vector of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
             }
-            std::copy_n(std::begin(initialValues), N, std::begin(values));
+            std::copy_n(std::begin(initialValues), N, std::begin(m_values));
         }
 
         ~Vector_X() = default;
@@ -53,14 +53,14 @@ namespace linear_algebra_core
         Vector_X<N>& operator=(Vector_X<N>&& other) noexcept = default;
 
         // iterator exposure
-        auto begin()   { return std::begin(values);   }
-        auto end()     { return std::end(values);     }
-        auto rbegin()  { return std::rbegin(values);  }
-        auto rend()    { return std::rend(values);    }
-        auto cbegin()  const { return std::cbegin(values);  }
-        auto cend()    const { return std::cend(values);    }
-        auto crbegin() const { return std::crbegin(values); }
-        auto crend()   const { return std::crend(values);   }
+        auto begin()   { return std::begin(m_values);   }
+        auto end()     { return std::end(m_values);     }
+        auto rbegin()  { return std::rbegin(m_values);  }
+        auto rend()    { return std::rend(m_values);    }
+        auto cbegin()  const { return std::cbegin(m_values);  }
+        auto cend()    const { return std::cend(m_values);    }
+        auto crbegin() const { return std::crbegin(m_values); }
+        auto crend()   const { return std::crend(m_values);   }
 
         [[nodiscard]] inline double dot(const Vector_X<N>& rhs) const
         {
@@ -71,9 +71,9 @@ namespace linear_algebra_core
         {
             static_assert(N == 3, "cross product can only be computed on 3 dimensional vectors");
             return {
-                values[1]*rhs[2] - values[2]*rhs[1],
-                values[2]*rhs[0] - values[0]*rhs[2],
-                values[0]*rhs[1] - values[1]*rhs[0]
+            m_values[1] * rhs[2] - m_values[2] * rhs[1],
+            m_values[2] * rhs[0] - m_values[0] * rhs[2],
+            m_values[0] * rhs[1] - m_values[1] * rhs[0]
             };
         }
 
@@ -85,22 +85,22 @@ namespace linear_algebra_core
 
         [[nodiscard]] inline double operator[](size_t index) const
         {
-            return values[index];
+            return m_values[index];
         }
 
         [[nodiscard]] inline double& operator[](size_t index)
         {
-            return values[index];
+            return m_values[index];
         }
 
         [[nodiscard]] inline double at(size_t index) const
         {
-            return values.at(index);
+            return m_values.at(index);
         }
 
         [[nodiscard]] inline double& at(size_t index)
         {
-            return values.at(index);
+            return m_values.at(index);
         }
 
         [[nodiscard]] double operator*(const Vector_X<N>& rhs) const
@@ -192,7 +192,7 @@ namespace linear_algebra_core
         {
             bool isEqual = true;
             for(int i = 0; isEqual && i < N; i++) {
-                isEqual = isEqual && (values[i] == rhs[i]);
+                isEqual = isEqual && (m_values[i] == rhs[i]);
             }
             return isEqual;
         }
@@ -260,7 +260,7 @@ namespace linear_algebra_core
             Vector_X<M> result;
             for(int i = 0; i < M; i++) {
                 if(i < N) {
-                    result[i] = values[i];
+                    result[i] = m_values[i];
                 } else {
                     result[i] = 0.0;
                 }

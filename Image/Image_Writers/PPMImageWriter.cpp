@@ -16,11 +16,9 @@ namespace output
         out << image.getColorRange() << "\n";
         for(int j = 0; j < image.height(); j++) {
             for(int i = 0; i < image.width(); i++) {
-                out << image.at(i, j).to_string();
-                if((j < image.height() - 1) || (i != image.width() - 1)) {
-                    out << "\n";
-                }
+                out << image.at(i, j).to_string() << " ";
             }
+            out << "\n";
         }
     }
 }

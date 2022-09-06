@@ -16,11 +16,11 @@ namespace geometry
     class Sphere : public Geometry
     {
     private:
-        Point_3 center;
-        double radius;
+        Point_3 m_center;
+        double  m_radius;
 
     public:
-        Sphere(Point_3 sphere_center, double sphere_radius) : center(sphere_center), radius(sphere_radius) { }
+        Sphere(Point_3 sphere_center, double sphere_radius) : m_center(sphere_center), m_radius(sphere_radius) { }
         bool intersects(const Ray& ray) const override;
 
         std::optional<Point_3> intersectsAt(const Ray& ray) const override;

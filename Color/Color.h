@@ -63,10 +63,23 @@ namespace color_core
             return std::to_string(R()) + " " + std::to_string(G()) + " " + std::to_string(B());
         }
 
+        [[nodiscard]] std::string to_string_with_alpha() const
+        {
+            return std::to_string(R()) + " " + std::to_string(G()) + " " + std::to_string(B()) + " " + std::to_string(Alpha());
+        }
+
+        /*!
+         * Will blend the two colors given. A \p t value of 0.5 will be an equal mix of the two colors, a \p t value of
+         * 1.0 will be purely the second color, and a \p t value of 0.0 will be purely the first color.
+         * @param first First color to be blended
+         * @param second Second color to be blended
+         * @param t value determining how much of each color there will be
+         * @return The blended color
+         */
         [[nodiscard]] static Color blend(const Color& first, const Color& second, double t) {
             if(t > 1.0 || t < 0.0)
             {
-                throw std::invalid_argument("t must be in the range of [0.0, 1.0]. Given value was: " + std::to_string(t));
+                throw std::invalid_argument("Color::blend - t must be in the range of [0.0, 1.0]. Given value was: " + std::to_string(t));
             }
             return Color(
                 first.R() + (t * (second.R() - first.R())),
