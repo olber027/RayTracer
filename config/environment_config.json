@@ -1,0 +1,29 @@
+{
+  "geometry" : [
+    {
+      "type" : "sphere",
+      "radius" : 0.5,
+      "center" : [0.0, 0.0, -3.0],
+      "color" : [255, 0, 0]
+    },
+    {
+      "type" : "sphere",
+      "radius" : 0.5,
+      "center" : [1.0, 1.0, -3.0],
+      "color" : [0, 255, 0]
+    },
+    {
+      "type" : "sphere",
+      "radius" : 0.25,
+      "center" : [-1.0, 1.0, -3.0],
+      "color" : [0, 0, 255]
+    },
+    {
+      "type" : "sphere",
+      "radius" : 2.0,
+      "center" : [1.0, 1.0, -10.0],
+      "color" : [0, 0, 0]
+    }
+  ],
+  "background_color" : [122, 178, 255]
+}

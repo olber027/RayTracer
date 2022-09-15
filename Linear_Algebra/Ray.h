@@ -30,14 +30,12 @@ namespace linear_algebra_core
             return (*this) * scalar;
         }
 
-        [[nodiscard]] Point_3 getOrigin() const
-        {
-            return m_origin;
-        }
+        const Point_3& getOrigin() { return m_origin; }
+        [[nodiscard]] Point_3 getOrigin() const { return m_origin; }
+        void setOrigin(const Point_3& new_origin) { m_origin = new_origin; }
 
-        [[nodiscard]] Vector_3 getDirection() const
-        {
-            return m_direction;
-        }
+        const Vector_3& getDirection() { return m_direction; }
+        [[nodiscard]] Vector_3 getDirection() const { return m_direction; }
+        void setDirection(const Vector_3& new_direction) { m_direction = new_direction; }
     };
 }

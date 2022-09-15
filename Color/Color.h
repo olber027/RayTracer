@@ -12,25 +12,18 @@ namespace color_core
         std::array<double, 4> values;
 
     public:
-        Color() : values{} { }
 
         explicit Color(double r, double g, double b) : Color(r, g, b, 1.0) { }
-
         explicit Color(double r, double g, double b, double alpha) : values{r, g, b, alpha} { }
-
         explicit Color(int r, int g, int b) : Color(r, g, b, 1.0) { }
-
         explicit Color(int r, int g, int b, double alpha) : values{static_cast<double>(r), static_cast<double>(g),
                                                                    static_cast<double>(b), alpha} { }
 
+        Color() = default;
         ~Color() = default;
-
         Color(const Color& other) = default;
-
         Color(Color&& other) noexcept = default;
-
         Color& operator=(const Color& other) = default;
-
         Color& operator=(Color&& other) noexcept = default;
 
         template<typename T>
@@ -56,6 +49,12 @@ namespace color_core
 
         Color operator+(const Color& rhs) {
             return Color(values[0] + rhs.R(), values[1] + rhs.G(), values[2] + rhs.B(), std::min(values[3] + rhs.Alpha(), 1.0));
+        }
+
+        void operator+=(const Color& rhs) {
+            values[0] += rhs.R();
+            values[1] += rhs.G();
+            values[2] += rhs.B();
         }
 
         [[nodiscard]] std::string to_string() const

@@ -10,42 +10,40 @@ namespace output
     class Image
     {
     private:
-        std::vector<std::vector<Color>> m_pixels;
+        std::vector<std::vector<Color>> m_pixels{};
         int m_colorRange;
 
     public:
 
         Image() : Image(0, 0, 255) { }
         Image(unsigned int width, unsigned int height, int colorRange) : m_pixels(height, std::vector<Color>(width, Color())), m_colorRange(colorRange) { }
-        Image(nlohmann::json json_file) {
-            int width, height, colorRange;
+        explicit Image(nlohmann::json json_file) {
+            int width = 0;
+            int height = 0;
+            int colorRange = 255;
             try {
                 width = json_file.at("width").get<int>();
             } catch(std::exception& e) {
-                throw std::invalid_argument("Could not find the required 'width' key");
+                throw std::invalid_argument("Could not find the required 'width' key. Using " + std::to_string(width));
             }
             try {
                 height = json_file.at("height").get<int>();
             } catch(std::exception& e) {
-                throw std::invalid_argument("Could not find the required 'height' key");
+                throw std::invalid_argument("Could not find the required 'height' key. Using " + std::to_string(height));
             }
             try {
                 colorRange = json_file.at("color_range").get<int>();
             } catch(std::exception& e) {
-                throw std::invalid_argument("Could not find the required 'color_range' key");
+                throw std::invalid_argument("Could not find the required 'color_range' key. Using " + std::to_string(colorRange));
             }
             m_pixels     = std::vector<std::vector<Color>>(height, std::vector<Color>(width, Color()));
             m_colorRange = colorRange;
         }
 
         ~Image() = default;
-
         Image(const Image& other) = default;
-
         Image(Image&& other) noexcept = default;
-
         Image& operator=(const Image& other) = default;
-
         Image& operator=(Image&& other) noexcept = default;
 
         [[nodiscard]] Color at(size_t x, size_t y) const {
@@ -56,7 +54,7 @@ namespace output
             return m_pixels.at(y).at(x);
         }
 
-        [[nodiscard]] int width() const { return static_cast<int>(m_pixels.at(0).size()); }
+        [[nodiscard]] int width()  const { return static_cast<int>(m_pixels.at(0).size()); }
         [[nodiscard]] int height() const { return static_cast<int>(m_pixels.size()); }
         [[nodiscard]] double aspectRatio() const { return static_cast<double>(width()) / static_cast<double>(height()); }
 

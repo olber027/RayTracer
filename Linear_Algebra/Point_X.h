@@ -31,8 +31,8 @@ namespace linear_algebra_core
         template <typename... InitialValues>
         Point_X(InitialValues... initialValues)
         {
-            static_assert(N == sizeof...(InitialValues), "Incorrect number of parameters given to constructor");
             static_assert((std::is_convertible_v<InitialValues, double> && ...), "Parameters must be implicitly convertible to doubles");
+            static_assert(N == sizeof...(InitialValues), "Incorrect number of parameters given to constructor");
             m_values = std::array<double, N>{initialValues...};
         }
 

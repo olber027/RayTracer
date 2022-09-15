@@ -71,9 +71,9 @@ namespace linear_algebra_core
         {
             static_assert(N == 3, "cross product can only be computed on 3 dimensional vectors");
             return {
-            m_values[1] * rhs[2] - m_values[2] * rhs[1],
-            m_values[2] * rhs[0] - m_values[0] * rhs[2],
-            m_values[0] * rhs[1] - m_values[1] * rhs[0]
+                m_values[1] * rhs[2] - m_values[2] * rhs[1],
+                m_values[2] * rhs[0] - m_values[0] * rhs[2],
+                m_values[0] * rhs[1] - m_values[1] * rhs[0]
             };
         }
 
@@ -105,7 +105,11 @@ namespace linear_algebra_core
 
         [[nodiscard]] double operator*(const Vector_X<N>& rhs) const
         {
-            return std::inner_product(cbegin(), cend(), rhs.cbegin(), 0);
+            double result = 0;
+            for(int i = 0; i < N; i++) {
+                result += m_values[i] * rhs[i];
+            }
+            return result;
         }
 
         template<typename T>
@@ -208,17 +212,21 @@ namespace linear_algebra_core
             for(int i = 0; i < (N - 1); i++) {
                 output += std::to_string(rhs[i]) + ", ";
             }
-            if(N > 0)
-            {
-                output += std::to_string(rhs[N - 1]) + " }";
+            if(N > 0) {
+                output += std::to_string(rhs[N - 1]);
             }
+            output += " }";
             out << output;
             return out;
         }
 
         [[nodiscard]] inline double getMagnitudeSquared() const
         {
-            return std::accumulate(cbegin(), cend(), 0, [](double previous, double current) { return previous + (current * current); });
+            double result = 0;
+            for(int i = 0; i < N; i++) {
+                result += m_values[i] * m_values[i];
+            }
+            return result;
         }
 
         [[nodiscard]] inline double getMagnitude() const
@@ -240,7 +248,7 @@ namespace linear_algebra_core
         Vector_X<N>& square()
         {
             std::transform(cbegin(), cend(), begin(), [](auto value) { return value * value; });
-            return *this;
+            return (*this);
         }
 
         [[nodiscard]] inline Vector_X<N> getSquared() const
