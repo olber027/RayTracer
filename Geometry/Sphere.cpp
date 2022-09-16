@@ -19,7 +19,7 @@ namespace geometry {
      */
     bool Sphere::intersects(const Ray& ray) const
     {
-        std::optional<Point_3> intersection_point = intersectsAt(ray);
+        std::optional<Point_3> intersection_point = getIntersectionPoint(ray);
         return intersection_point.has_value();
     }
 
@@ -29,7 +29,7 @@ namespace geometry {
      * @return a std::optional containing the first intersection point, if it exists. containing nothing, otherwise.
      * @details uses the geometric solution described here: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
      */
-    std::optional<Point_3> Sphere::intersectsAt(const Ray& ray) const
+    std::optional<Point_3> Sphere::getIntersectionPoint(const Ray& ray) const
     {
         Ray normalized_ray = Ray(ray.getOrigin(), ray.getDirection().getUnitVector());
         Vector_3 center_to_ray_origin = m_center - ray.getOrigin();
@@ -102,5 +102,10 @@ namespace geometry {
     Color Sphere::getColorAt(const Point_3& point) const
     {
         return m_color;
+    }
+
+    Vector_3 Sphere::getNormalAt(const linear_algebra_core::Point_3& point) const
+    {
+        return (m_center - point).normalize();
     }
 }

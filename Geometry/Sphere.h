@@ -34,9 +34,10 @@ namespace geometry
         Sphere(const Point_3& sphere_center, double sphere_radius, const Color& color) : m_center(sphere_center), m_radius(sphere_radius), m_color(color) { }
 
         [[nodiscard]] bool intersects(const Ray& ray) const override;
-        [[nodiscard]] std::optional<Point_3> intersectsAt(const Ray& ray) const override;
+        [[nodiscard]] std::optional<Point_3> getIntersectionPoint(const Ray& ray) const override;
         [[nodiscard]] Color getColorAt(const Point_3& point) const override;
-        void fromJson(const nlohmann::json& json_node) override;
+        [[nodiscard]] Vector_3 getNormalAt(const Point_3& point) const;
+                      void fromJson(const nlohmann::json& json_node) override;
 
         [[nodiscard]] Point_3 getCenter() const { return m_center; }
         [[nodiscard]] double  getRadius() const { return m_radius; }

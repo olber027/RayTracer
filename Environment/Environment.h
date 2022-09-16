@@ -76,7 +76,7 @@ namespace environment
             std::shared_ptr<geometry::Geometry> geometry_to_return = nullptr;
             double current_shortest_distance = std::numeric_limits<double>::max();
             for(const auto& geometry_object : m_geometry) {
-                std::optional<Point_3> intersection_point = geometry_object->intersectsAt(ray);
+                std::optional<Point_3> intersection_point = geometry_object->getIntersectionPoint(ray);
                 if(intersection_point.has_value()) {
                     double distance_to_object = (intersection_point.value() - ray.getOrigin()).getMagnitude();
                     if(distance_to_object < current_shortest_distance)

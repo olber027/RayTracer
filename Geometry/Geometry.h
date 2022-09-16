@@ -13,8 +13,9 @@ namespace geometry
     {
     public:
         [[nodiscard]] virtual bool intersects(const Ray& ray) const = 0;
-        [[nodiscard]] virtual std::optional<Point_3> intersectsAt(const Ray& ray) const = 0;
+        [[nodiscard]] virtual std::optional<Point_3> getIntersectionPoint(const Ray& ray) const = 0;
         [[nodiscard]] virtual color_core::Color getColorAt(const Point_3& point) const = 0;
-        virtual void fromJson(const nlohmann::json& json_node) = 0;
+        [[nodiscard]] virtual Vector_3 getNormalAt(const Point_3& point) const = 0;
+                      virtual void fromJson(const nlohmann::json& json_node) = 0;
     };
 }
