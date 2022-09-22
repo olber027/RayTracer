@@ -17,7 +17,8 @@ add_subdirectory(Environment)
 
 add_executable(ray_tracer
         main.cpp
-        RayTracer.h RayTracer.cpp)
+        RayTracer.h
+        RayTracer.cpp)
 target_include_directories(ray_tracer PUBLIC .)
 target_link_libraries(ray_tracer PUBLIC
         third_party

@@ -17,6 +17,16 @@ namespace scene
         Vector_3 m_yAxis;
     public:
         Camera() = default;
+        ~Camera() = default;
+        Camera(const Camera& other) = default;
+        Camera(Camera&& other) noexcept = default;
+        Camera& operator=(const Camera& other) = default;
+        Camera& operator=(Camera&& other) noexcept = default;
+
+        /*!
+         * Construct a Camera object from the given \p camera_config
+         * @param camera_config json config for the camera
+         */
         explicit Camera(const nlohmann::json& camera_config)
         {
             std::vector<double> position{0, 0, 0};
@@ -55,26 +65,42 @@ namespace scene
             }
 
             m_position = Point_3(position);
-            m_zAxis = Vector_3(zAxis);
-            m_yAxis = Vector_3(yAxis);
+            m_zAxis = Vector_3(zAxis).normalize();
+            m_yAxis = Vector_3(yAxis).normalize();
         }
 
-        ~Camera() = default;
-        Camera(const Camera& other) = default;
-        Camera(Camera&& other) noexcept = default;
-        Camera& operator=(const Camera& other) = default;
-        Camera& operator=(Camera&& other) noexcept = default;
-
+        /*!
+         * @return the unit vector defining the x-axis for the camera
+         */
         [[nodiscard]] Vector_3 X() const { return m_zAxis.cross(m_yAxis).normalize(); }
+        /*!
+         * @return the unit vector defining the y-axis for the camera
+         */
         [[nodiscard]] Vector_3 Y() const { return m_yAxis; }
+        /*!
+         * @return the unit vector defining the z-axis for the camera
+         */
         [[nodiscard]] Vector_3 Z() const { return m_zAxis; }
+        /*!
+         * @return the position of the camera
+         */
         [[nodiscard]] Point_3 getPosition() const { return m_position; }
 
+        /*!
+         * Translate the camera by the given \p translation_vector
+         * @param translation_vector vector to translate the camera by
+         * @return a reference to this camera
+         */
         Camera& translate(const Vector_3& translation_vector) {
             m_position += translation_vector;
             return (*this);
         }
 
+        /*!
+         * Translate the camera to the \p new_position
+         * @param new_position position to translate the camera to
+         * @return a reference to this camera
+         */
         Camera& translateTo(const Point_3& new_position) {
             m_position = new_position;
             return (*this);

@@ -5,9 +5,6 @@
 #include "json.h"
 #include "Random_Number_Generator.h"
 
-#include <future>
-#include <thread>
-
 RayTracer::RayTracer(const nlohmann::json& environment_config, const nlohmann::json& scene_config,
                      const nlohmann::json& output_config, const nlohmann::json& ray_tracer_parameters)
                      : m_environment(environment_config), m_scene(scene_config), m_image(output_config)

@@ -12,23 +12,12 @@ namespace geometry {
     using namespace linear_algebra_core;
     using namespace color_core;
 
-    /*!
-     * Determines if the given /p ray intersects this sphere.
-     * @param ray The ray to check for intersection
-     * @return true if /p ray intersects this sphere. False otherwise
-     */
     bool Sphere::intersects(const Ray& ray) const
     {
         std::optional<Point_3> intersection_point = getIntersectionPoint(ray);
         return intersection_point.has_value();
     }
 
-    /*!
-     * Determines if the given /p ray intersects this sphere and returns the first intersection point.
-     * @param ray The ray to check for intersection
-     * @return a std::optional containing the first intersection point, if it exists. containing nothing, otherwise.
-     * @details uses the geometric solution described here: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
-     */
     std::optional<Point_3> Sphere::getIntersectionPoint(const Ray& ray) const
     {
         Ray normalized_ray = Ray(ray.getOrigin(), ray.getDirection().getUnitVector());

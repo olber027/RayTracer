@@ -3,9 +3,11 @@
 #include <array>
 #include <string>
 
+#include "json.h"
+
 namespace color_core
 {
-
+    // TODO: Extend this to more than just the RGB color space
     class Color
     {
     private:
