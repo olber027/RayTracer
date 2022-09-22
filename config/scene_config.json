@@ -5,7 +5,7 @@
     "y_axis" : [0.0, 1.0, 0.0]
   },
   "screen_config" : {
-    "top_left" : [-2.0, 1.0, -2.0],
+    "reference_corner" : [-2.0, 1.0, -2.0],
     "width" : [4.0, 0.0, 0.0],
     "height" : [0.0, -2.0, 0.0]
   }

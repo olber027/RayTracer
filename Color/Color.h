@@ -77,7 +77,8 @@ namespace color_core
          * @param t value determining how much of each color there will be
          * @return The blended color
          */
-        [[nodiscard]] static Color blend(const Color& first, const Color& second, double t) {
+        [[nodiscard]] static Color blend(const Color& first, const Color& second, double t)
+        {
             if(t > 1.0 || t < 0.0)
             {
                 throw std::invalid_argument("Color::blend - t must be in the range of [0.0, 1.0]. Given value was: " + std::to_string(t));

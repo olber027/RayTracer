@@ -56,13 +56,13 @@ namespace scene {
             auto vector_to_string = [] (auto val) { return "[" + std::to_string(val[0]) + ", " + std::to_string(val[1]) + ", " + std::to_string(val[2]) + "]"; };
 
             try {
-                top_left = screen_config.at("top_left").get<std::vector<double>>();
+                top_left = screen_config.at("reference_corner").get<std::vector<double>>();
                 if(top_left.size() != 3)
                 {
-                    throw std::invalid_argument("'top_left' field must be specified in the form: [X, Y, Z]");
+                    throw std::invalid_argument("'reference_corner' field must be specified in the form: [X, Y, Z]");
                 }
             } catch(std::exception& e) {
-                throw std::invalid_argument("Could not find the required 'top_left' key. Using " + vector_to_string(top_left));
+                throw std::invalid_argument("Could not find the required 'reference_corner' key. Using " + vector_to_string(top_left));
             }
 
             try {
