@@ -39,28 +39,14 @@ namespace linear_algebra_core {
         auto crbegin() const { return std::crbegin(m_values); }
         auto crend()   const { return std::crend(m_values);   }
 
-        [[nodiscard]] inline Vector_X<N> operator[](size_t index) const
-        {
-            return m_values[index];
-        }
+        [[nodiscard]] inline Vector_X<N> operator[](size_t index) const { return m_values[index]; }
+        [[nodiscard]] inline Vector_X<N>& operator[](size_t index) { return m_values[index]; }
 
-        [[nodiscard]] inline Vector_X<N>& operator[](size_t index)
-        {
-            return m_values[index];
-        }
+        [[nodiscard]] inline Vector_X<N> at(size_t index) const { return m_values.at(index); }
+        [[nodiscard]] inline Vector_X<N>& at(size_t index) { return m_values.at(index); }
 
-        [[nodiscard]] inline Vector_X<N>& at(size_t index)
-        {
-            return m_values.at(index);
-        }
-
-        [[nodiscard]] inline double at(size_t row, size_t column) const {
-            return m_values.at(row).at(column);
-        }
-
-        [[nodiscard]] inline double& at(size_t row, size_t column) {
-            return m_values.at(row).at(column);
-        }
+        [[nodiscard]] inline double at(size_t row, size_t column) const { return m_values.at(row).at(column); }
+        [[nodiscard]] inline double& at(size_t row, size_t column) { return m_values.at(row).at(column); }
 
         template<size_t index>
         [[nodiscard]] inline Vector_X<M> getRow() const
@@ -165,7 +151,7 @@ namespace linear_algebra_core {
         }
 
         template<typename T>
-        [[nodiscard]] Matrix_MxN<M, N> operator*=(const T& scalar)
+        [[nodiscard]] Matrix_MxN<M, N>& operator*=(const T& scalar)
         {
             static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
             for(auto& row : m_values) {
@@ -183,7 +169,7 @@ namespace linear_algebra_core {
             return result;
         }
 
-        Matrix_MxN<M, N> operator+=(const Matrix_MxN<M, N>& rhs) {
+        Matrix_MxN<M, N>& operator+=(const Matrix_MxN<M, N>& rhs) {
             for(int i = 0; i < M; i++) {
                 m_values[i] += rhs[i];
             }
@@ -199,7 +185,7 @@ namespace linear_algebra_core {
             return result;
         }
 
-        Matrix_MxN<M, N> operator-=(const Matrix_MxN<M, N>& rhs)
+        Matrix_MxN<M, N>& operator-=(const Matrix_MxN<M, N>& rhs)
         {
             for(int i = 0; i < M; i++) {
                 m_values[i] -= rhs[i];
@@ -207,16 +193,22 @@ namespace linear_algebra_core {
             return (*this);
         }
 
-        friend std::ostream& operator<<(std::ostream& out, const Matrix_MxN<M, N>& rhs)
+        [[nodiscard]] std::string to_string() const
         {
-            out << "{ \n";
+            std::string result = "{ \n";
             for(int i = 0; i < (M - 1); i++) {
-                out << "\t" << rhs[i] << ",\n";
+                result += "\t" + m_values[i] + ",\n";
             }
             if(M > 0) {
-                out << "\t" << rhs[M - 1] << "\n";
+                result + "\t" + m_values[M - 1] + "\n";
             }
-            out << "}";
+            result + "}";
+            return result;
+        }
+
+        friend std::ostream& operator<<(std::ostream& out, const Matrix_MxN<M, N>& rhs)
+        {
+            out << rhs.to_string();
             return out;
         }
 
@@ -229,7 +221,7 @@ namespace linear_algebra_core {
             return result;
         }
 
-        Matrix_MxN<M, N> transpose()
+        Matrix_MxN<M, N>& transpose()
         {
             static_assert(M == N, "cannot perform an inplace transpose on a non-square matrix");
             for(int i = 1; i < M; i++) {
