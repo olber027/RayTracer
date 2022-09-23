@@ -19,6 +19,13 @@ namespace linear_algebra_core {
         template<size_t... Rows>
         Matrix_MxN(const double(&initialValues)[M][N], std::index_sequence<Rows...> rows) : m_values{Vector_X<N>(initialValues[Rows])... } { }
 
+        template<size_t Column, size_t... Rows>
+        constexpr Vector_X<N> getColumnHelper(std::index_sequence<Rows...>) const {
+            Vector_X<N> result;
+            ((result.template getValue<Rows>() = getValue<Rows, Column>()), ...);
+            return result;
+        }
+
     public:
         Matrix_MxN() : m_values{} { }
 
@@ -34,61 +41,132 @@ namespace linear_algebra_core {
         auto end()     { return std::end(m_values);     }
         auto rbegin()  { return std::rbegin(m_values);  }
         auto rend()    { return std::rend(m_values);    }
-        auto cbegin()  const { return std::cbegin(m_values);  }
-        auto cend()    const { return std::cend(m_values);    }
-        auto crbegin() const { return std::crbegin(m_values); }
-        auto crend()   const { return std::crend(m_values);   }
+        [[nodiscard]] auto cbegin()  const { return std::cbegin(m_values);  }
+        [[nodiscard]] auto cend()    const { return std::cend(m_values);    }
+        [[nodiscard]] auto crbegin() const { return std::crbegin(m_values); }
+        [[nodiscard]] auto crend()   const { return std::crend(m_values);   }
 
+        /*!
+         * @param index index of the desired row
+         * @return A copy of the row at the given \p index
+         */
         [[nodiscard]] inline Vector_X<N> operator[](size_t index) const { return m_values[index]; }
+        /*!
+         * @param index index of the desired row
+         * @return A reference to the row at the given \p index
+         */
         [[nodiscard]] inline Vector_X<N>& operator[](size_t index) { return m_values[index]; }
 
+        /*!
+         * Exception-throwing version of the index operation
+         * @param index index of the desired row
+         * @return A copy of the row at the given \p index
+         */
         [[nodiscard]] inline Vector_X<N> at(size_t index) const { return m_values.at(index); }
+        /*!
+         * Exception-throwing version of the index operation
+         * @param index index of the desired row
+         * @return A reference to the row at the given \p index
+         */
         [[nodiscard]] inline Vector_X<N>& at(size_t index) { return m_values.at(index); }
 
+        /*!
+         * Exception-throwing double indexing operation
+         * @param row index of the desired row
+         * @param column index of the desired column
+         * @return a copy of the value at the given \p row and \p column
+         */
         [[nodiscard]] inline double at(size_t row, size_t column) const { return m_values.at(row).at(column); }
+        /*!
+         * Exception-throwing double indexing operation
+         * @param row index of the desired row
+         * @param column index of the desired column
+         * @return a reference to the value at the given \p row and \p column
+         */
         [[nodiscard]] inline double& at(size_t row, size_t column) { return m_values.at(row).at(column); }
 
-        template<size_t index>
-        [[nodiscard]] inline Vector_X<M> getRow() const
+        /*!
+         * Compile-time double index operation
+         * @tparam Row index of the desired row
+         * @tparam Column index of the desired column
+         * @return a copy of the value at the given \p row and \p column
+         */
+        template<size_t Row, size_t Column>
+        [[nodiscard]] constexpr inline double getValue() const
         {
-            static_assert(index < M, "index was out of bounds");
-            return m_values[index];
+            static_assert(Row < M, "Row index was out of bounds");
+            static_assert(Column < N, "Column index was out of bounds");
+            return std::get<Row>(m_values).template getValue<Column>();
         }
 
-        template<size_t index>
-        [[nodiscard]] inline Vector_X<M>& getRow()
+        /*!
+         * Compile-time double index operation
+         * @tparam Row index of the desired row
+         * @tparam Column index of the desired column
+         * @return A reference to the value at the given \p row and \p column
+         */
+        template<size_t Row, size_t Column>
+        [[nodiscard]] constexpr inline double& getValue()
         {
-            static_assert(index < M, "index was out of bounds");
-            return m_values[index];
+            static_assert(Row < M, "Row index was out of bounds");
+            static_assert(Column < N, "Column index was out of bounds");
+            return std::get<Row>(m_values).template getValue<Column>();
         }
 
-        [[nodiscard]] inline Vector_X<M> getRow(size_t index) const
+        /*!
+         * Compile-time Row access
+         * @tparam Index index of the desired row
+         * @return a copy of the row at the given \p Index
+         */
+        template<size_t Index>
+        [[nodiscard]] constexpr inline Vector_X<M> getRow() const
         {
-            if(index >= M) {
-                throw std::out_of_range("given index (" + std::to_string(index) + ") was out of range.");
-            }
-            return m_values[index];
+            static_assert(Index < M, "Row index was out of bounds");
+            return std::get<Index>(m_values);
         }
 
-        [[nodiscard]] inline Vector_X<M>& getRow(size_t index)
+        /*!
+         * Compile-time Row access
+         * @tparam Index index of the desired row
+         * @return a reference to the row at the given \p Index
+         */
+        template<size_t Index>
+        [[nodiscard]] constexpr inline Vector_X<M>& getRow()
         {
-            if(index >= M) {
-                throw std::out_of_range("given index (" + std::to_string(index) + ") was out of range.");
-            }
-            return m_values[index];
+            static_assert(Index < M, "Row index was out of bounds");
+            return std::get<Index>(m_values);
         }
 
-        template<size_t index>
+        /*!
+         * Explicit row access. Mostly just here for code clarity purposes. Throws an exception if \p index is out of bounds
+         * @param index index of the desired row
+         * @return A copy of the row at the given \p index
+         */
+        [[nodiscard]] inline Vector_X<M> getRow(size_t index) const { return m_values.at(index); }
+        /*!
+         * Explicit row access. Mostly just here for code clarity purposes. Throws an exception if \p index is out of bounds
+         * @param index index of the desired row
+         * @return A reference to the row at the given \p index
+         */
+        [[nodiscard]] inline Vector_X<M>& getRow(size_t index) { return m_values.at(index); }
+
+        /*!
+         * Compile-time column accessor
+         * @tparam Index index of the desired column
+         * @return A copy of the column at the given \p Index
+         */
+        template<size_t Index>
         [[nodiscard]] constexpr Vector_X<N> getColumn() const
         {
-            static_assert(index < N);
-            Vector_X<N> result;
-            for(int i = 0; i < M; i++) {
-                result[i] = m_values[i][index];
-            }
-            return result;
+            static_assert(Index < N, "Column index was out of bounds");
+            return getColumnHelper<Index>(std::make_index_sequence<N>{});
         }
 
+        /*!
+         * Column accessor. Will throw an exception of \p index is out of bounds
+         * @param index index of the desired column
+         * @return A copy of the column at the given \p index
+         */
         [[nodiscard]] Vector_X<N> getColumn(size_t index) const
         {
             if(index >= N) {
@@ -101,6 +179,10 @@ namespace linear_algebra_core {
             return result;
         }
 
+        /*!
+         * @param rhs Matrix to multiply by
+         * @return The result of the multiplication
+         */
         [[nodiscard]] Matrix_MxN<M, M> operator*(const Matrix_MxN<N, M>& rhs) const
         {
             Matrix_MxN<M, M> result;
@@ -112,14 +194,23 @@ namespace linear_algebra_core {
             return result;
         }
 
-        inline Matrix_MxN<M, N> operator*=(const Matrix_MxN<N, M>& rhs)
+        /*!
+         * @param rhs Matrix to multiply this matrix by
+         * @return a reference to this matrix
+         */
+        inline Matrix_MxN<M, N>& operator*=(const Matrix_MxN<N, M>& rhs)
         {
             static_assert(M == N, "Can only perform operator*= on square matrices, otherwise the dimensions don't match.");
             (*this) = (*this) * rhs;
             return (*this);
         }
 
-        // row vector
+        /*!
+         * Row-vector multiplication
+         * @param lhs Vector to be multiplied
+         * @param rhs Matrix to multiply the vector by
+         * @return The resulting vector
+         */
         [[nodiscard]] friend Vector_X<N> operator*(const Vector_X<M>& lhs, const Matrix_MxN<M, N>& rhs)
         {
             Vector_X<N> result;
@@ -129,7 +220,11 @@ namespace linear_algebra_core {
             return result;
         }
 
-        // column vector
+        /*!
+         * Column-Vector multiplication
+         * @param rhs The vector to multiply by
+         * @return The result of the multiplication
+         */
         [[nodiscard]] Vector_X<M> operator*(const Vector_X<N>& rhs) const
         {
             Vector_X<M> result;
@@ -139,6 +234,11 @@ namespace linear_algebra_core {
             return result;
         }
 
+        /*!
+         * @tparam T Type of \p scalar. Must be an arithmetic type
+         * @param scalar value to scale the matrix by
+         * @return The scaled matrix
+         */
         template<typename T>
         [[nodiscard]] Matrix_MxN<M, N> operator*(const T& scalar) const
         {
@@ -150,6 +250,11 @@ namespace linear_algebra_core {
             return result;
         }
 
+        /*!
+         * @tparam T Type of \p scalar. Must be an arithmetic type.
+         * @param scalar Value to scale the matrix by.
+         * @return A reference to this matrix
+         */
         template<typename T>
         [[nodiscard]] Matrix_MxN<M, N>& operator*=(const T& scalar)
         {
@@ -160,6 +265,10 @@ namespace linear_algebra_core {
             return *this;
         }
 
+        /*!
+         * @param rhs Matrix to add to this
+         * @return The result of the addition
+         */
         [[nodiscard]] Matrix_MxN<M, N> operator+(const Matrix_MxN<M, N>& rhs) const
         {
             Matrix_MxN<M, N> result;
@@ -169,6 +278,10 @@ namespace linear_algebra_core {
             return result;
         }
 
+        /*!
+         * @param rhs matrix to add to this one
+         * @return a reference to this matrix
+         */
         Matrix_MxN<M, N>& operator+=(const Matrix_MxN<M, N>& rhs) {
             for(int i = 0; i < M; i++) {
                 m_values[i] += rhs[i];
@@ -176,6 +289,10 @@ namespace linear_algebra_core {
             return (*this);
         }
 
+        /*!
+         * @param rhs matrix to subtract
+         * @return the result of the subtraction
+         */
         [[nodiscard]] Matrix_MxN<M, N> operator-(const Matrix_MxN<M, N>& rhs) const
         {
             Matrix_MxN<M, N> result;
@@ -185,6 +302,10 @@ namespace linear_algebra_core {
             return result;
         }
 
+        /*!
+         * @param rhs Matrix to subtract this one by
+         * @return a reference to this matrix
+         */
         Matrix_MxN<M, N>& operator-=(const Matrix_MxN<M, N>& rhs)
         {
             for(int i = 0; i < M; i++) {
@@ -193,6 +314,9 @@ namespace linear_algebra_core {
             return (*this);
         }
 
+        /*!
+         * @return the string representation of this matrix
+         */
         [[nodiscard]] std::string to_string() const
         {
             std::string result = "{ \n";
@@ -206,12 +330,21 @@ namespace linear_algebra_core {
             return result;
         }
 
+        /*!
+         * ostream operation for matrices
+         * @param out ostream to place the matrix into
+         * @param rhs matrix to be serialized
+         * @return a reference to \p out
+         */
         friend std::ostream& operator<<(std::ostream& out, const Matrix_MxN<M, N>& rhs)
         {
             out << rhs.to_string();
             return out;
         }
 
+        /*!
+         * @return A transposed version of this matrix
+         */
         Matrix_MxN<N, M> getTransposed() const
         {
             Matrix_MxN<N, M> result;
@@ -221,6 +354,10 @@ namespace linear_algebra_core {
             return result;
         }
 
+        /*!
+         * In-place matrix transposition. Matrix must be square.
+         * @return a reference to this matrix
+         */
         Matrix_MxN<M, N>& transpose()
         {
             static_assert(M == N, "cannot perform an inplace transpose on a non-square matrix");

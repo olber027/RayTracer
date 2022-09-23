@@ -27,16 +27,16 @@ namespace linear_algebra_core
         Vector_X() : m_values{} { }
 
         template <typename... InitialValues>
-        Vector_X(InitialValues... initialValues)
+        constexpr Vector_X(InitialValues... initialValues)
         {
             static_assert(N == sizeof...(InitialValues), "Incorrect number of parameters given to constructor");
             static_assert((std::is_convertible_v<InitialValues, double> && ...), "Parameters must be implicitly convertible to doubles");
             m_values = std::array<double, N>{initialValues...};
         }
 
-        explicit Vector_X(const std::array<double, N>& initialValues) : m_values{initialValues} { }
-        explicit Vector_X(const std::array<double, N>&& initialValues) : m_values{initialValues} { }
-        explicit Vector_X(const double (&initialValues)[N]) {
+        explicit constexpr Vector_X(const std::array<double, N>& initialValues) : m_values{initialValues} { }
+        explicit constexpr Vector_X(const std::array<double, N>&& initialValues) : m_values{initialValues} { }
+        explicit constexpr Vector_X(const double (&initialValues)[N]) {
             std::copy_n(std::begin(initialValues), N, std::begin(m_values));
         }
         explicit Vector_X(const std::vector<double>& initialValues) {
@@ -57,10 +57,10 @@ namespace linear_algebra_core
         auto end()     { return std::end(m_values);     }
         auto rbegin()  { return std::rbegin(m_values);  }
         auto rend()    { return std::rend(m_values);    }
-        auto cbegin()  const { return std::cbegin(m_values);  }
-        auto cend()    const { return std::cend(m_values);    }
-        auto crbegin() const { return std::crbegin(m_values); }
-        auto crend()   const { return std::crend(m_values);   }
+        [[nodiscard]] auto cbegin()  const { return std::cbegin(m_values);  }
+        [[nodiscard]] auto cend()    const { return std::cend(m_values);    }
+        [[nodiscard]] auto crbegin() const { return std::crbegin(m_values); }
+        [[nodiscard]] auto crend()   const { return std::crend(m_values);   }
 
         /*!
          * The dot product of two vectors. Vectors must be the same size
@@ -77,7 +77,7 @@ namespace linear_algebra_core
          * @param rhs the other vector used to calculate the cross product
          * @return The cross product of this vector and \p rhs
          */
-        Vector_X<N> cross(const Vector_X<N>& rhs) const
+        [[nodiscard]] Vector_X<N> cross(const Vector_X<N>& rhs) const
         {
             static_assert(N == 3, "cross product can only be computed on 3 dimensional vectors");
             return {
@@ -102,38 +102,47 @@ namespace linear_algebra_core
          * @param index index of the value to return
          * @return the value at the given \p index
          */
-        [[nodiscard]] inline double operator[](size_t index) const
-        {
-            return m_values[index];
-        }
-
+        [[nodiscard]] inline double operator[](size_t index) const { return m_values[index]; }
         /*!
          * @param index index of the value to return
          * @return the value at the given \p index
          */
-        [[nodiscard]] inline double& operator[](size_t index)
-        {
-            return m_values[index];
-        }
+        [[nodiscard]] inline double& operator[](size_t index) { return m_values[index]; }
 
         /*!
          * Throws an exception if index is out of bounds
          * @param index index of the value to return
          * @return the value at the given \p index
          */
-        [[nodiscard]] inline double at(size_t index) const
-        {
-            return m_values.at(index);
-        }
-
+        [[nodiscard]] inline double at(size_t index) const { return m_values.at(index); }
         /*!
          * Throws an exception if index is out of bounds
          * @param index index of the value to return
          * @return the value at the given \p index
          */
-        [[nodiscard]] inline double& at(size_t index)
+        [[nodiscard]] inline double& at(size_t index) { return m_values.at(index); }
+
+        /*!
+         * Compile-time element access
+         * @tparam Index index of the desired value
+         * @return a copy of the value at the given \p Index
+         */
+        template<size_t Index>
+        [[nodiscard]] constexpr double getValue() const
         {
-            return m_values.at(index);
+            static_assert(Index < N, "index was out of bounds");
+            return std::get<Index>(m_values);
+        }
+        /*!
+         * Compile-time element access
+         * @tparam Index index of the desired value
+         * @return a reference to the value at the given \p Index
+         */
+        template<size_t Index>
+        [[nodiscard]] constexpr double& getValue()
+        {
+            static_assert(Index < N, "index was out of bounds");
+            return std::get<Index>(m_values);
         }
 
         /*!
