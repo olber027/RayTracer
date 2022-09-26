@@ -29,11 +29,19 @@ namespace linear_algebra_core
         Point_X() : m_values{} { }
 
         template <typename... InitialValues>
-        Point_X(InitialValues... initialValues)
+        explicit Point_X(InitialValues... initialValues)
         {
             static_assert((std::is_convertible_v<InitialValues, double> && ...), "Parameters must be implicitly convertible to doubles");
             static_assert(N == sizeof...(InitialValues), "Incorrect number of parameters given to constructor");
             m_values = std::array<double, N>{initialValues...};
+        }
+
+        constexpr Point_X(std::initializer_list<double> initialValues)
+        {
+            if(initialValues.size() != N) {
+                throw std::invalid_argument("Point_X constructor expected a initializer_list of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
+            }
+            std::copy_n(std::begin(initialValues), N, begin());
         }
 
         explicit Point_X(const std::array<double, N>& initialValues) : m_values{initialValues} { }
@@ -266,7 +274,7 @@ namespace linear_algebra_core
         {
             bool isEqual = true;
             for(int i = 0; isEqual && i < N; i++) {
-                isEqual = isEqual && (m_values[i] == rhs[i]);
+                isEqual = (m_values[i] == rhs[i]) && isEqual;
             }
             return isEqual;
         }

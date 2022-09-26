@@ -14,8 +14,8 @@ RayTracer::RayTracer(const nlohmann::json& environment_config, const nlohmann::j
 
 void RayTracer::trace()
 {
-    double x_step = 1.0 / m_image.width();
-    double y_step = 1.0 / m_image.height();
+    double x_step = 1.0 / static_cast<double>(m_image.width());
+    double y_step = 1.0 / static_cast<double>(m_image.height());
     Color white(255, 255, 255);
     for(int j = 0; j < m_image.height(); j++) {
         for(int i = 0; i < m_image.width(); i++) {

@@ -24,10 +24,10 @@ namespace linear_algebra_core
         std::array<double, N> m_values{};
 
     public:
-        Vector_X() : m_values{} { }
+        Vector_X() = default;
 
         template <typename... InitialValues>
-        constexpr Vector_X(InitialValues... initialValues)
+        explicit constexpr Vector_X(InitialValues... initialValues)
         {
             static_assert(N == sizeof...(InitialValues), "Incorrect number of parameters given to constructor");
             static_assert((std::is_convertible_v<InitialValues, double> && ...), "Parameters must be implicitly convertible to doubles");
@@ -37,21 +37,21 @@ namespace linear_algebra_core
         constexpr Vector_X(std::initializer_list<double> initialValues)
         {
             if(initialValues.size() != N) {
-                throw std::out_of_range("Vector_X constructor expected a initializer_list of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
+                throw std::invalid_argument("Vector_X constructor expected a initializer_list of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
             }
-            std::copy_n(std::begin(initialValues), N, std::begin(m_values));
+            std::copy_n(std::begin(initialValues), N, begin());
         }
 
         explicit constexpr Vector_X(const std::array<double, N>& initialValues) : m_values{initialValues} { }
         explicit constexpr Vector_X(const std::array<double, N>&& initialValues) : m_values{initialValues} { }
         explicit constexpr Vector_X(const double (&initialValues)[N]) {
-            std::copy_n(std::begin(initialValues), N, std::begin(m_values));
+            std::copy_n(std::begin(initialValues), N, begin());
         }
         explicit Vector_X(const std::vector<double>& initialValues) {
             if(initialValues.size() != N) {
-                throw std::out_of_range("Vector_X constructor expected a std::vector of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
+                throw std::invalid_argument("Vector_X constructor expected a std::vector of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
             }
-            std::copy_n(std::begin(initialValues), N, std::begin(m_values));
+            std::copy_n(std::begin(initialValues), N, begin());
         }
 
         ~Vector_X() = default;
@@ -311,7 +311,7 @@ namespace linear_algebra_core
         {
             bool isEqual = true;
             for(int i = 0; isEqual && i < N; i++) {
-                isEqual = isEqual && (m_values[i] == rhs[i]);
+                isEqual = (m_values[i] == rhs[i]) && isEqual;
             }
             return isEqual;
         }

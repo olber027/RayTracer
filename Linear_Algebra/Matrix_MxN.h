@@ -28,9 +28,12 @@ namespace linear_algebra_core {
 
         Matrix_MxN(std::initializer_list<std::initializer_list<double>> rows)
         {
-            size_t rowIndex = 0;
+            if(rows.size() != M) {
+                throw std::invalid_argument("Matrix_MxN constructor expected a initializer_list of size " + std::to_string(M) + ", but got size " + std::to_string(rows.size()));
+            }
+            size_t index = 0;
             for(const auto& row : rows) {
-                m_values[rowIndex++] = Vector_X<N>(row);
+                m_values[index++] = Vector_X<N>(row);
             }
         }
 
