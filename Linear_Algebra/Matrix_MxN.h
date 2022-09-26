@@ -14,10 +14,7 @@ namespace linear_algebra_core {
     template<size_t M, size_t N>
     class Matrix_MxN {
     private:
-        std::array<Vector_X<N>, M> m_values;
-
-        template<size_t... Rows>
-        Matrix_MxN(const double(&initialValues)[M][N], std::index_sequence<Rows...> rows) : m_values{Vector_X<N>(initialValues[Rows])... } { }
+        std::array<Vector_X<N>, M> m_values{};
 
         template<size_t Column, size_t... Rows>
         constexpr Vector_X<N> getColumnHelper(std::index_sequence<Rows...>) const {
@@ -27,9 +24,25 @@ namespace linear_algebra_core {
         }
 
     public:
-        Matrix_MxN() : m_values{} { }
+        Matrix_MxN() = default;
 
-        explicit Matrix_MxN(const double (&initialValues)[M][N]) : Matrix_MxN(initialValues, std::make_index_sequence<M>()) { }
+        Matrix_MxN(std::initializer_list<std::initializer_list<double>> rows)
+        {
+            size_t rowIndex = 0;
+            for(const auto& row : rows) {
+                m_values[rowIndex++] = Vector_X<N>(row);
+            }
+        }
+
+        template<size_t... n>
+        explicit constexpr Matrix_MxN(const double (&...list)[n])
+        {
+            size_t index = 0;
+            ((m_values[index++] = Vector_X<N>(list)), ...);
+        }
+
+        explicit constexpr Matrix_MxN(const std::array<Vector_X<N>, M>& other) : m_values{other} { }
+        explicit constexpr Matrix_MxN(const std::array<Vector_X<N>, M>&& other) : m_values{other} { }
 
         ~Matrix_MxN() = default;
         Matrix_MxN(const Matrix_MxN<M, N>& other) = default;

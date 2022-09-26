@@ -21,7 +21,7 @@ namespace linear_algebra_core
     class Vector_X
     {
     private:
-        std::array<double, N> m_values;
+        std::array<double, N> m_values{};
 
     public:
         Vector_X() : m_values{} { }
@@ -32,6 +32,14 @@ namespace linear_algebra_core
             static_assert(N == sizeof...(InitialValues), "Incorrect number of parameters given to constructor");
             static_assert((std::is_convertible_v<InitialValues, double> && ...), "Parameters must be implicitly convertible to doubles");
             m_values = std::array<double, N>{initialValues...};
+        }
+
+        constexpr Vector_X(std::initializer_list<double> initialValues)
+        {
+            if(initialValues.size() != N) {
+                throw std::out_of_range("Vector_X constructor expected a initializer_list of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
+            }
+            std::copy_n(std::begin(initialValues), N, std::begin(m_values));
         }
 
         explicit constexpr Vector_X(const std::array<double, N>& initialValues) : m_values{initialValues} { }
