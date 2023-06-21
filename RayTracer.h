@@ -32,12 +32,12 @@ public:
      */
     void trace();
 
-    [[nodiscard]] const Image& getImage() { return m_image; }
-    [[nodiscard]] Image getImage() const { return m_image; }
+    [[nodiscard]] inline const Image& getImage() { return m_image; }
+    [[nodiscard]] inline Image getImage() const { return m_image; }
 
-    const Scene& getScene() { return m_scene; }
-    [[nodiscard]] Scene getScene() const { return m_scene; }
+    [[nodiscard]] inline const Scene& getScene() { return m_scene; }
+    [[nodiscard]] inline Scene getScene() const { return m_scene; }
 
-    const Environment& getEnvironment() { return m_environment; }
-    [[nodiscard]] Environment getEnvironment() const { return m_environment; }
+    [[nodiscard]] inline const Environment& getEnvironment() { return m_environment; }
+    [[nodiscard]] inline Environment getEnvironment() const { return m_environment; }
 };

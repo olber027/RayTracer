@@ -36,7 +36,7 @@ namespace linear_algebra_core
 
         constexpr Vector_X(std::initializer_list<double> initialValues)
         {
-            if(initialValues.size() != N) {
+            if (initialValues.size() != N) {
                 throw std::invalid_argument("Vector_X constructor expected a initializer_list of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
             }
             std::copy_n(std::begin(initialValues), N, begin());
@@ -52,6 +52,14 @@ namespace linear_algebra_core
                 throw std::invalid_argument("Vector_X constructor expected a std::vector of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
             }
             std::copy_n(std::begin(initialValues), N, begin());
+        }
+        template<typename Iterator>
+        Vector_X(Iterator Begin, Iterator End)
+        {
+            if(std::distance(Begin, End) != N) {
+                throw std::invalid_argument("Vector_X constructor expected an iterable span of size " + std::to_string(N) + ", but got size " + std::to_string(std::distance(Begin, End)));
+            }
+            std::copy_n(Begin, N, begin());
         }
 
         ~Vector_X() = default;
@@ -400,11 +408,19 @@ namespace linear_algebra_core
         template<size_t M>
         Vector_X<M> getAsDimension() const
         {
+            if constexpr(M == N) {
+				return *this; 
+			}
             Vector_X<M> result;
-            for(int i = 0; i < M; i++) {
-                if(i < N) {
+            if constexpr (M < N) {
+                for(int i = 0; i < M; i++) {
                     result[i] = m_values[i];
-                } else {
+                }
+            } else {
+                for(int i = 0; i < N; i++) {
+                    result[i] = m_values[i];
+                }
+                for(int i = N; i < M; i++) {
                     result[i] = 0.0;
                 }
             }
@@ -430,6 +446,44 @@ namespace linear_algebra_core
         [[nodiscard]] inline double getAngleBetween(const Vector_X<N>& other) const
         {
             return acos(((*this) * other) / (getMagnitude() * other.getMagnitude()));
+        }
+
+        /*!
+         * Checks the orthogonality of this vector and \p other.
+         * @param other vector to check orthogonality with
+         * @return true if the vectors are orthogonal, false otherwise.
+         */
+        [[nodiscard]] inline bool isOrthogonalTo(const Vector_X<N>& other) const
+        {
+            return ((*this) * other) == 0;
+        }
+
+        /*!
+         * Interpolates between this vector and \p other, by the factor \p t. A \p t value of 0.0 will leave this vector
+         * unchanged, and a \p t value of 1.0 will set this vector to \p other
+         * @param other The other vector to interpolate this vector with
+         * @param t the interpolation value. must be between 0.0 and 1.0
+         */
+        inline void interpolateWith(const Vector_X<N>& other, double t)
+        {
+            if(t > 1.0 || t < 0.0)
+            {
+                throw std::invalid_argument("t must be in the range of [0.0, 1.0]. Given value was: " + std::to_string(t));
+            }
+            (*this) *= (1.0 - t);
+            (*this) += (other * t);
+        }
+
+        /*!
+         * Interpolates between this vector and \p other, by the factor \p t. A \p t value of 0.0 will return this vector,
+         * and a \p t value of 1.0 will return \p other.
+         * @param other The other vector to interpolate this vector with
+         * @param t the interpolation value. must be between 0.0 and 1.0
+         * @return the interpolated vector
+         */
+        [[nodiscard]] Vector_X<N> getInterpolatedVector(const Vector_X<N>& other, double t) const
+        {
+            return Vector_X<N>::linear_interpolation(*this, other, t);
         }
 
         /*!
@@ -470,7 +524,7 @@ namespace linear_algebra_core
         [[nodiscard]] static inline double triple_scalar_product(const Vector_X<N>& a, const Vector_X<N>& b, const Vector_X<N>& c)
         {
             static_assert(N == 3, "triple scalar product can only be computed on 3 dimensional vectors");
-            return a * b.cross(c);
+            return a * (b.cross(c));
         }
 
         /*!
@@ -491,10 +545,11 @@ namespace linear_algebra_core
         }
     };
 
+    using Vector_2 = Vector_X<2>;
     using Vector_3 = Vector_X<3>;
     using Vector_4 = Vector_X<4>;
 
-    [[nodiscard]] static Vector_3 getUnitX() { return {1.0, 0.0, 0.0}; }
-    [[nodiscard]] static Vector_3 getUnitY() { return {0.0, 1.0, 0.0}; }
-    [[nodiscard]] static Vector_3 getUnitZ() { return {0.0, 0.0, 1.0}; }
+    [[nodiscard]] static constexpr Vector_3 getUnitX() { return {1.0, 0.0, 0.0}; }
+    [[nodiscard]] static constexpr Vector_3 getUnitY() { return {0.0, 1.0, 0.0}; }
+    [[nodiscard]] static constexpr Vector_3 getUnitZ() { return {0.0, 0.0, 1.0}; }
 }

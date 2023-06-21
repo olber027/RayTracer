@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 
 project(RayTracer)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(Linear_Algebra)
 add_subdirectory(Utility)
@@ -22,10 +22,12 @@ add_executable(ray_tracer
 target_include_directories(ray_tracer PUBLIC .)
 target_link_libraries(ray_tracer PUBLIC
         third_party
+        utility
         linear_algebra_core
         geometry
         image_core
         image_writer_builder
         environment
         scene
+        # polyscope
         )

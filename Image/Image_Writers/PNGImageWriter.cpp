@@ -7,7 +7,6 @@
 #include "Image.h"
 #include "Color.h"
 #include "PNGImageWriter.h"
-#include "Endian.h"
 //#include <Magick++.h>
 
 namespace output

@@ -3,7 +3,7 @@
 //
 #include "RayTracer.h"
 #include "json.h"
-#include "Random_Number_Generator.h"
+#include "RandomNumberGenerator.h"
 
 RayTracer::RayTracer(const nlohmann::json& environment_config, const nlohmann::json& scene_config,
                      const nlohmann::json& output_config, const nlohmann::json& ray_tracer_parameters)
@@ -16,7 +16,7 @@ void RayTracer::trace()
 {
     double x_step = 1.0 / static_cast<double>(m_image.width());
     double y_step = 1.0 / static_cast<double>(m_image.height());
-    Color white(255, 255, 255);
+    static const Color white(255, 255, 255);
     for(int j = 0; j < m_image.height(); j++) {
         for(int i = 0; i < m_image.width(); i++) {
             double u = i * x_step;

@@ -11,7 +11,7 @@ namespace output
     {
     private:
         std::vector<std::vector<Color>> m_pixels{};
-        int m_colorRange;
+        int m_colorRange = 255;
 
     public:
 

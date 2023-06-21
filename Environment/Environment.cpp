@@ -66,6 +66,7 @@ namespace environment
 
     [[nodiscard]] Color Environment::getBackgroundColor(const Ray& ray) const
     {
+        // this should make a gradient from darker to lighter as it goes up the screen
         double t = (ray.getDirection().normalize()[1] + 1.0) / 2.0;
         static Color white(216, 232, 255);
         return Color::blend(m_backgroundColor, white, t);

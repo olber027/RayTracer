@@ -60,7 +60,7 @@ namespace geometry
          * @param point The point to get the normal at
          * @return The normal at the given \p point
          */
-        [[nodiscard]] Vector_3 getNormalAt(const Point_3& point) const;
+        [[nodiscard]] Vector_3 getNormalAt(const Point_3& point) const override;
 
         /*!
          * Construct a sphere from the given \p json_node

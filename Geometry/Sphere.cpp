@@ -93,7 +93,7 @@ namespace geometry {
         return m_color;
     }
 
-    Vector_3 Sphere::getNormalAt(const linear_algebra_core::Point_3& point) const
+    Vector_3 Sphere::getNormalAt(const Point_3& point) const
     {
         return (m_center - point).normalize();
     }
