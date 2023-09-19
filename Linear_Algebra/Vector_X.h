@@ -15,39 +15,49 @@
 #include <vector>
 #include <numeric>
 
+#include "LinearAlgebraTypeTraits.h"
+
 namespace linear_algebra_core
 {
-    template <size_t N>
+
+    template <size_t N, IsArithmetic value_type = double>
     class Vector_X
     {
     private:
-        std::array<double, N> m_values{};
+        std::array<value_type, N> m_values{};
 
     public:
         Vector_X() = default;
 
-        template <typename... InitialValues>
+        template <DoesNotNarrowlyConvertTo<value_type>... InitialValues>
         explicit constexpr Vector_X(InitialValues... initialValues)
         {
             static_assert(N == sizeof...(InitialValues), "Incorrect number of parameters given to constructor");
-            static_assert((std::is_convertible_v<InitialValues, double> && ...), "Parameters must be implicitly convertible to doubles");
-            m_values = std::array<double, N>{initialValues...};
+            m_values = std::array<value_type, N>{initialValues...};
         }
 
-        constexpr Vector_X(std::initializer_list<double> initialValues)
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        constexpr Vector_X(std::initializer_list<T> initialValues)
         {
             if (initialValues.size() != N) {
                 throw std::invalid_argument("Vector_X constructor expected a initializer_list of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
             }
+            std::copy_n(std::cbegin(initialValues), N, begin());
+        }
+
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        explicit constexpr Vector_X(const std::array<T, N>& initialValues) : m_values{initialValues} { }
+
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        explicit constexpr Vector_X(const std::array<T, N>&& initialValues) : m_values{initialValues} { }
+
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        explicit constexpr Vector_X(const T (&initialValues)[N]) {
             std::copy_n(std::begin(initialValues), N, begin());
         }
 
-        explicit constexpr Vector_X(const std::array<double, N>& initialValues) : m_values{initialValues} { }
-        explicit constexpr Vector_X(const std::array<double, N>&& initialValues) : m_values{initialValues} { }
-        explicit constexpr Vector_X(const double (&initialValues)[N]) {
-            std::copy_n(std::begin(initialValues), N, begin());
-        }
-        explicit Vector_X(const std::vector<double>& initialValues) {
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        explicit Vector_X(const std::vector<T>& initialValues) {
             if(initialValues.size() != N) {
                 throw std::invalid_argument("Vector_X constructor expected a std::vector of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
             }
@@ -56,6 +66,8 @@ namespace linear_algebra_core
         template<typename Iterator>
         Vector_X(Iterator Begin, Iterator End)
         {
+            static_assert(detail::is_not_narrowing_conversion_v<decltype(*Begin), value_type>, "the given underlying type of the iterator must not be a narrowing conversion to value_type");
+            static_assert(std::is_arithmetic_v<decltype(*Begin)>, "The underlying type of the given iterator must be an arithmetic type");
             if(std::distance(Begin, End) != N) {
                 throw std::invalid_argument("Vector_X constructor expected an iterable span of size " + std::to_string(N) + ", but got size " + std::to_string(std::distance(Begin, End)));
             }
@@ -63,10 +75,33 @@ namespace linear_algebra_core
         }
 
         ~Vector_X() = default;
-        Vector_X(const Vector_X<N>& other) = default;
-        Vector_X(Vector_X<N>&& other) noexcept = default;
-        Vector_X<N>& operator=(const Vector_X<N>& other) = default;
-        Vector_X<N>& operator=(Vector_X<N>&& other) noexcept = default;
+
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        Vector_X(const Vector_X<N, other_type>& other)
+        {
+            if(&other != this) [[likely]] {
+                std::copy_n(other.cbegin(), N, begin());
+            }
+        }
+
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        Vector_X(Vector_X<N, other_type>&& other) noexcept : m_values{std::move(other.m_values)} { }
+
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        Vector_X<N, value_type>& operator=(const Vector_X<N, other_type>& other)
+        {
+            if(&other != this) [[likely]] {
+                std::copy_n(other.cbegin(), N, begin());
+            }
+            return *this;
+        }
+
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        Vector_X<N, value_type>& operator=(Vector_X<N, other_type>&& other) noexcept
+        {
+            m_values = std::move(other.m_values);
+            return *this;
+        }
 
         // iterator exposure
         auto begin()   { return std::begin(m_values);   }
@@ -83,7 +118,8 @@ namespace linear_algebra_core
          * @param rhs The other vector used to calculate the dot product
          * @return the dot product of this vector and \p rhs
          */
-        [[nodiscard]] inline double dot(const Vector_X<N>& rhs) const
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        [[nodiscard]] [[maybe_unused]] inline value_type dot(const Vector_X<N, other_type>& rhs) const
         {
             return (*this) * rhs;
         }
@@ -93,7 +129,8 @@ namespace linear_algebra_core
          * @param rhs the other vector used to calculate the cross product
          * @return The cross product of this vector and \p rhs
          */
-        [[nodiscard]] Vector_X<N> cross(const Vector_X<N>& rhs) const
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        [[nodiscard]] Vector_X<N, value_type> cross(const Vector_X<N, other_type>& rhs) const
         {
             static_assert(N == 3, "cross product can only be computed on 3 dimensional vectors");
             return {
@@ -108,7 +145,8 @@ namespace linear_algebra_core
          * @param value values used to fill the vector
          * @return a reference to this vector
          */
-        Vector_X<N>& fill(double value)
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        Vector_X<N, value_type>& fill(T value)
         {
             std::fill(begin(), end(), value);
             return (*this);
@@ -118,25 +156,25 @@ namespace linear_algebra_core
          * @param index index of the value to return
          * @return the value at the given \p index
          */
-        [[nodiscard]] inline double operator[](size_t index) const { return m_values[index]; }
+        [[nodiscard]] inline value_type operator[](size_t index) const { return m_values[index]; }
         /*!
          * @param index index of the value to return
          * @return the value at the given \p index
          */
-        [[nodiscard]] inline double& operator[](size_t index) { return m_values[index]; }
+        [[nodiscard]] inline value_type& operator[](size_t index) { return m_values[index]; }
 
         /*!
          * Throws an exception if index is out of bounds
          * @param index index of the value to return
          * @return the value at the given \p index
          */
-        [[nodiscard]] inline double at(size_t index) const { return m_values.at(index); }
+        [[nodiscard]] inline value_type at(size_t index) const { return m_values.at(index); }
         /*!
          * Throws an exception if index is out of bounds
          * @param index index of the value to return
          * @return the value at the given \p index
          */
-        [[nodiscard]] inline double& at(size_t index) { return m_values.at(index); }
+        [[nodiscard]] inline value_type& at(size_t index) { return m_values.at(index); }
 
         /*!
          * Compile-time element access
@@ -144,9 +182,8 @@ namespace linear_algebra_core
          * @return a copy of the value at the given \p Index
          */
         template<size_t Index>
-        [[nodiscard]] constexpr double getValue() const
+        [[nodiscard]] constexpr value_type getValue() const requires (Index < N)
         {
-            static_assert(Index < N, "index was out of bounds");
             return std::get<Index>(m_values);
         }
         /*!
@@ -155,9 +192,8 @@ namespace linear_algebra_core
          * @return a reference to the value at the given \p Index
          */
         template<size_t Index>
-        [[nodiscard]] constexpr double& getValue()
+        [[nodiscard]] constexpr value_type& getValue() requires (Index < N)
         {
-            static_assert(Index < N, "index was out of bounds");
             return std::get<Index>(m_values);
         }
 
@@ -166,9 +202,10 @@ namespace linear_algebra_core
          * @param rhs the other vector used to calculate the dot product
          * @return The dot product of this vector and \p rhs
          */
-        [[nodiscard]] double operator*(const Vector_X<N>& rhs) const
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        [[nodiscard]] value_type operator*(const Vector_X<N, other_type>& rhs) const
         {
-            double result = 0;
+            value_type result = 0;
             for(int i = 0; i < N; i++) {
                 result += m_values[i] * rhs[i];
             }
@@ -181,11 +218,10 @@ namespace linear_algebra_core
          * @param scalar value to scale the Vector by
          * @return The scaled vector
          */
-        template<typename T>
-        [[nodiscard]] Vector_X<N> operator*(T scalar) const
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        [[nodiscard]] Vector_X<N, value_type> operator*(T scalar) const
         {
-            static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
-            Vector_X<N> result;
+            Vector_X<N, value_type> result;
             std::transform(cbegin(), cend(), result.begin(), [scalar](auto value) { return value * scalar; });
             return result;
         }
@@ -197,10 +233,10 @@ namespace linear_algebra_core
          * @param rhs vector to be scaled.
          * @return the scaled vector
          */
-        template<typename T>
-        [[nodiscard]] friend inline Vector_X<N> operator*(T scalar, const Vector_X<N>& rhs)
+        template<IsArithmetic result_value_type, DoesNotNarrowlyConvertTo<result_value_type> T>
+        [[nodiscard]] friend inline
+        Vector_X<N, result_value_type> operator*(T scalar, const Vector_X<N, result_value_type>& rhs)
         {
-            static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
             return rhs * scalar;
         }
 
@@ -210,10 +246,9 @@ namespace linear_algebra_core
          * @param scalar The value to scale this vector by.
          * @return a reference to this vector
          */
-        template<typename T>
-        Vector_X<N>& operator*=(T scalar)
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        Vector_X<N, value_type>& operator*=(T scalar)
         {
-            static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
             std::transform(cbegin(), cend(), begin(), [scalar](auto value) { return value * scalar; });
             return *this;
         }
@@ -224,15 +259,14 @@ namespace linear_algebra_core
          * @param scalar The value to scale this vector by. Cannot be 0
          * @return the scaled vector
          */
-        template<typename T>
-        [[nodiscard]] Vector_X<N> operator/(T scalar) const
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        [[nodiscard]] Vector_X<N, value_type> operator/(T scalar) const
         {
-            static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
             if(scalar == 0.0)
             {
-                throw std::domain_error("Cannot divide a vector by 0");
+                throw std::logic_error("Cannot divide a vector by 0");
             }
-            Vector_X<N> result;
+            Vector_X<N, value_type> result;
             std::transform(cbegin(), cend(), result.begin(), [scalar](auto value) { return value / scalar; });
             return result;
         }
@@ -243,13 +277,12 @@ namespace linear_algebra_core
          * @param scalar The value to scale this vector by. Cannot be 0
          * @return a reference to this vector
          */
-        template<typename T>
-        Vector_X<N>& operator/=(T scalar)
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        Vector_X<N, value_type>& operator/=(T scalar)
         {
-            static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
             if(scalar == 0.0)
             {
-                throw std::domain_error("Cannot divide a vector by 0");
+                throw std::logic_error("Cannot divide a vector by 0");
             }
             std::transform(cbegin(), cend(), begin(), [scalar](auto value) { return value / scalar; });
             return *this;
@@ -260,9 +293,10 @@ namespace linear_algebra_core
          * @param rhs Vector to add this vector to.
          * @return The result of the vector addition.
          */
-        [[nodiscard]] Vector_X<N> operator+(const Vector_X<N>& rhs) const
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        [[nodiscard]] Vector_X<N, value_type> operator+(const Vector_X<N, other_type>& rhs) const
         {
-            Vector_X<N> result;
+            Vector_X<N, value_type> result;
             std::transform(cbegin(), cend(), rhs.cbegin(), result.begin(), [](auto left, auto right) { return left + right; });
             return result;
         }
@@ -272,7 +306,8 @@ namespace linear_algebra_core
          * @param rhs Vector to add to this vector
          * @return a reference to this vector
          */
-        Vector_X<N>& operator+=(const Vector_X<N>& rhs)
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        Vector_X<N, value_type>& operator+=(const Vector_X<N, other_type>& rhs)
         {
             std::transform(cbegin(), cend(), rhs.cbegin(), begin(), [](auto left, auto right) { return left + right; });
             return *this;
@@ -282,9 +317,9 @@ namespace linear_algebra_core
          * Unary negation operator. Multiples this vector by -1.0.
          * @return a reference to this vector
          */
-        [[nodiscard]] inline Vector_X<N> operator-() const
+        [[nodiscard]] inline Vector_X<N, value_type> operator-() const
         {
-            return (*this) * -1.0;
+            return (*this) * static_cast<value_type>(-1.0);
         }
 
         /*!
@@ -292,9 +327,10 @@ namespace linear_algebra_core
          * @param rhs The vector to subtract
          * @return The result of the vector subtraction.
          */
-        [[nodiscard]] Vector_X<N> operator-(const Vector_X<N>& rhs) const
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        [[nodiscard]] Vector_X<N, value_type> operator-(const Vector_X<N, other_type>& rhs) const
         {
-            Vector_X<N> result;
+            Vector_X<N, value_type> result;
             std::transform(cbegin(), cend(), rhs.cbegin(), result.begin(), [](auto left, auto right) { return left - right; });
             return result;
         }
@@ -304,7 +340,8 @@ namespace linear_algebra_core
          * @param rhs The vector to subtract
          * @return a reference to this vector
          */
-        Vector_X<N>& operator-=(const Vector_X<N>& rhs)
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        Vector_X<N, value_type>& operator-=(const Vector_X<N, other_type>& rhs)
         {
             std::transform(cbegin(), cend(), rhs.cbegin(), begin(), [](auto left, auto right) { return left - right; });
             return *this;
@@ -315,13 +352,15 @@ namespace linear_algebra_core
          * @param rhs The vector to compare against
          * @return true if the two vectors are equal, false otherwise.
          */
-        [[nodiscard]] bool operator==(const Vector_X<N>& rhs) const
+        template<IsArithmetic other_type>
+        [[nodiscard]] bool operator==(const Vector_X<N, other_type>& rhs) const
         {
-            bool isEqual = true;
-            for(int i = 0; isEqual && i < N; i++) {
-                isEqual = (m_values[i] == rhs[i]) && isEqual;
+            for(size_t i = 0; i < N; i++) {
+                if (m_values[i] != rhs[i]) {
+                    return false;
+                }
             }
-            return isEqual;
+            return true;
         }
 
         /*!
@@ -329,7 +368,8 @@ namespace linear_algebra_core
          * @param rhs The vector to compare this to
          * @return true if the two vectors are different, false otherwise.
          */
-        [[nodiscard]] inline bool operator!=(const Vector_X<N>& rhs) const
+        template<IsArithmetic other_type>
+        [[nodiscard]] inline bool operator!=(const Vector_X<N, other_type>& rhs) const
         {
             return !(*this == rhs);
         }
@@ -337,9 +377,9 @@ namespace linear_algebra_core
         /*!
          * @return the summation of the square of each value of this vector
          */
-        [[nodiscard]] inline double getMagnitudeSquared() const
+        [[nodiscard]] inline value_type getMagnitudeSquared() const
         {
-            double result = 0;
+            value_type result = 0;
             for(int i = 0; i < N; i++) {
                 result += m_values[i] * m_values[i];
             }
@@ -349,16 +389,16 @@ namespace linear_algebra_core
         /*!
          * @return The magnitude of this vector
          */
-        [[nodiscard]] inline double getMagnitude() const
+        [[nodiscard]] inline value_type getMagnitude() const
         {
-            return std::sqrt(getMagnitudeSquared());
+            return static_cast<value_type>(std::sqrt(getMagnitudeSquared()));
         }
 
         /*!
          * Normalizes this vector by dividing each element by the magnitude of the vector
          * @return a reference to this vector
          */
-        inline Vector_X<N>& normalize()
+        inline Vector_X<N, value_type>& normalize()
         {
             (*this) /= getMagnitude();
             return *this;
@@ -367,7 +407,7 @@ namespace linear_algebra_core
         /*!
          * @return a normalized copy of this vector
          */
-        [[nodiscard]] inline Vector_X<N> getUnitVector() const
+        [[nodiscard]] inline Vector_X<N, value_type> getUnitVector() const
         {
             return (*this) / getMagnitude();
         }
@@ -376,7 +416,7 @@ namespace linear_algebra_core
          * Square each element of this vector
          * @return a reference to this vector
          */
-        Vector_X<N>& square()
+        Vector_X<N, value_type>& square()
         {
             std::transform(cbegin(), cend(), begin(), [](auto value) { return value * value; });
             return (*this);
@@ -385,18 +425,36 @@ namespace linear_algebra_core
         /*!
          * @return a squared copy of this vector
          */
-        [[nodiscard]] inline Vector_X<N> getSquared() const
+        [[nodiscard]] [[maybe_unused]] inline Vector_X<N, value_type> getSquared() const
         {
-            Vector_X<N> result {*this};
+            Vector_X<N, value_type> result {*this};
             return result.square();
         }
 
         /*!
          * @return the summation of each element of this vector
          */
-        [[nodiscard]] inline double sum_elements() const
+        [[nodiscard]] [[maybe_unused]] inline value_type sum_elements() const
         {
-            return std::accumulate(cbegin(), cend(), 0);
+            return std::accumulate(cbegin(), cend(), static_cast<value_type>(0));
+        }
+
+        /*!
+         * If /p new_type is the same as value_type, this function is a noop, otherwise returns
+         * a new vector with the values equal to the result of static casting the values in this vector.
+         * @tparam new_type The underlying type of the new vector
+         * @return the new vector
+         */
+        template<IsArithmetic new_type>
+        Vector_X<N, new_type> CastTo() const {
+            if constexpr (std::is_same_v<value_type, new_type>) {
+                return *this;
+            } else {
+                Vector_X<N, new_type> result;
+                std::transform(cbegin(), cend(), result.begin(),
+                               [](auto value) { return static_cast<new_type>(value); });
+                return result;
+            }
         }
 
         /*!
@@ -406,25 +464,18 @@ namespace linear_algebra_core
          * @return The new vector
          */
         template<size_t M>
-        Vector_X<M> getAsDimension() const
+        [[maybe_unused]]
+        Vector_X<M, value_type> getAsDimension() const
         {
-            if constexpr(M == N) {
+            if constexpr (M == N) {
 				return *this; 
-			}
-            Vector_X<M> result;
-            if constexpr (M < N) {
-                for(int i = 0; i < M; i++) {
-                    result[i] = m_values[i];
-                }
+			} else if constexpr (M < N) {
+                return Vector_X<M, value_type>(cbegin(), cbegin() + M);
             } else {
-                for(int i = 0; i < N; i++) {
-                    result[i] = m_values[i];
-                }
-                for(int i = N; i < M; i++) {
-                    result[i] = 0.0;
-                }
+                Vector_X<M, value_type> result;
+                std::copy_n(cbegin(), N, result.begin());
+                return result;
             }
-            return result;
         }
 
         /*!
@@ -432,18 +483,20 @@ namespace linear_algebra_core
          * @param other vector for this to be projected onto.
          * @return The projected vector
          */
-        [[nodiscard]] Vector_X<N> projectOnto(const Vector_X<N>& other) const
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        [[nodiscard]] [[maybe_unused]] Vector_X<N, value_type> projectOnto(const Vector_X<N, other_type>& other) const
         {
-            Vector_X<N> unit_other = other.getUnitVector();
+            Vector_X<N, value_type> unit_other = other.getUnitVector();
             return unit_other * ((*this) * unit_other);
         }
 
         /*!
          * Returns the angle between this vector and \p other in radians.
          * @param other Vector to get the angle between
-         * @return the angle between this vector and \p other.
+         * @return the angle between this vector and \p other, in radians.
          */
-        [[nodiscard]] inline double getAngleBetween(const Vector_X<N>& other) const
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        [[nodiscard]] [[maybe_unused]] inline value_type getAngleBetween(const Vector_X<N, other_type>& other) const
         {
             return acos(((*this) * other) / (getMagnitude() * other.getMagnitude()));
         }
@@ -453,7 +506,8 @@ namespace linear_algebra_core
          * @param other vector to check orthogonality with
          * @return true if the vectors are orthogonal, false otherwise.
          */
-        [[nodiscard]] inline bool isOrthogonalTo(const Vector_X<N>& other) const
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        [[nodiscard]] inline bool isOrthogonalTo(const Vector_X<N, other_type>& other) const
         {
             return ((*this) * other) == 0;
         }
@@ -464,7 +518,9 @@ namespace linear_algebra_core
          * @param other The other vector to interpolate this vector with
          * @param t the interpolation value. must be between 0.0 and 1.0
          */
-        inline void interpolateWith(const Vector_X<N>& other, double t)
+        template<DoesNotNarrowlyConvertTo<value_type> other_type, DoesNotNarrowlyConvertTo<value_type> T>
+        [[maybe_unused]]
+        inline void interpolateWith(const Vector_X<N, other_type>& other, T t)
         {
             if(t > 1.0 || t < 0.0)
             {
@@ -481,9 +537,10 @@ namespace linear_algebra_core
          * @param t the interpolation value. must be between 0.0 and 1.0
          * @return the interpolated vector
          */
-        [[nodiscard]] Vector_X<N> getInterpolatedVector(const Vector_X<N>& other, double t) const
+        template<DoesNotNarrowlyConvertTo<value_type> other_type, IsArithmetic T>
+        [[nodiscard]] [[maybe_unused]] Vector_X<N, value_type> getInterpolatedVector(const Vector_X<N, other_type>& other, T t) const
         {
-            return Vector_X<N>::linear_interpolation(*this, other, t);
+            return Vector_X<N, value_type>::linear_interpolation(*this, other, t);
         }
 
         /*!
@@ -495,10 +552,10 @@ namespace linear_algebra_core
             for(int i = 0; i < (N - 1); i++) {
                 output += std::to_string(m_values[i]) + ", ";
             }
-            if(N > 0) {
-                output += std::to_string(m_values[N - 1]);
+            if constexpr (N > 0) {
+                output += std::to_string(m_values[N - 1]) + " ";
             }
-            output += " }";
+            output += "}";
             return output;
         }
 
@@ -521,9 +578,11 @@ namespace linear_algebra_core
          * @param c the \p c vector in the above formula
          * @return the triple scalar product of \p a, \p b, and \p c
          */
-        [[nodiscard]] static inline double triple_scalar_product(const Vector_X<N>& a, const Vector_X<N>& b, const Vector_X<N>& c)
+        template<IsArithmetic a_type, DoesNotNarrowlyConvertTo<a_type> b_type, DoesNotNarrowlyConvertTo<b_type> c_type>
+        [[nodiscard]] [[maybe_unused]]
+        static inline
+        value_type triple_scalar_product(const Vector_X<3, a_type>& a, const Vector_X<3, b_type>& b, const Vector_X<3, c_type>& c)
         {
-            static_assert(N == 3, "triple scalar product can only be computed on 3 dimensional vectors");
             return a * (b.cross(c));
         }
 
@@ -535,7 +594,9 @@ namespace linear_algebra_core
          * @param t the interpolation value. must be between 0.0 and 1.0
          * @return The interpolated vector
          */
-        [[nodiscard]] static Vector_X<N> linear_interpolation(const Vector_X<N>& a, const Vector_X<N>& b, double t)
+        template<IsArithmetic a_type, DoesNotNarrowlyConvertTo<a_type> b_type, DoesNotNarrowlyConvertTo<a_type> T>
+        [[nodiscard]] static
+        Vector_X<N> linear_interpolation(const Vector_X<N, a_type>& a, const Vector_X<N, b_type>& b, T t)
         {
             if(t > 1.0 || t < 0.0)
             {
@@ -549,7 +610,7 @@ namespace linear_algebra_core
     using Vector_3 = Vector_X<3>;
     using Vector_4 = Vector_X<4>;
 
-    [[nodiscard]] static constexpr Vector_3 getUnitX() { return {1.0, 0.0, 0.0}; }
-    [[nodiscard]] static constexpr Vector_3 getUnitY() { return {0.0, 1.0, 0.0}; }
-    [[nodiscard]] static constexpr Vector_3 getUnitZ() { return {0.0, 0.0, 1.0}; }
+    [[nodiscard]] [[maybe_unused]] static constexpr Vector_3 getUnitX() { return {1.0, 0.0, 0.0}; }
+    [[nodiscard]] [[maybe_unused]] static constexpr Vector_3 getUnitY() { return {0.0, 1.0, 0.0}; }
+    [[nodiscard]] [[maybe_unused]] static constexpr Vector_3 getUnitZ() { return {0.0, 0.0, 1.0}; }
 }

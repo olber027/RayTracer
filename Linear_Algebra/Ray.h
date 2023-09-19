@@ -7,12 +7,14 @@ namespace linear_algebra_core
     class Ray
     {
     private:
-        Point_3  m_origin;
-        Vector_3 m_direction;
+        using value_type = double;
+
+        Point_X<3, value_type>  m_origin;
+        Vector_X<3, value_type> m_direction;
 
     public:
         Ray() = default;
-        explicit Ray(const Point_3& start, const Vector_3& dir) : m_origin(start), m_direction(dir) { }
+        explicit Ray(const Point_X<3, value_type>& start, const Vector_X<3, value_type>& dir) : m_origin(start), m_direction(dir) { }
         ~Ray() = default;
         Ray(const Ray& other) = default;
         Ray(Ray&& other) noexcept = default;
@@ -25,9 +27,8 @@ namespace linear_algebra_core
          * @param scalar value to scale the direction by.
          * @return The point returned by the above calculation
          */
-        template<typename T>
-        Point_3 operator*(T scalar) const {
-            static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        Point_X<3, value_type> operator*(T scalar) const {
             return m_origin + (m_direction * scalar);
         }
 
@@ -37,37 +38,37 @@ namespace linear_algebra_core
          * @param scalar value to scale the direction by.
          * @return The point returned by the above calculation
          */
-        template<typename T>
-        Point_3 at(T scalar) const {
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        Point_X<3, value_type> at(T scalar) const {
             return (*this) * scalar;
         }
 
         /*!
          * @return the origin of the ray
          */
-        const Point_3& getOrigin() { return m_origin; }
+        [[maybe_unused]] const Point_X<3, value_type>& getOrigin() { return m_origin; }
         /*!
          * @return the origin of the ray
          */
-        [[nodiscard]] Point_3 getOrigin() const { return m_origin; }
+        [[nodiscard]] Point_X<3, value_type> getOrigin() const { return m_origin; }
         /*!
          * Sets the origin to \p new_origin
          * @param new_origin the new origin for the ray
          */
-        void setOrigin(const Point_3& new_origin) { m_origin = new_origin; }
+        [[maybe_unused]] void setOrigin(const Point_X<3, value_type>& new_origin) { m_origin = new_origin; }
 
         /*!
          * @return the direction of the ray
          */
-        const Vector_3& getDirection() { return m_direction; }
+        const Vector_X<3, value_type>& getDirection() { return m_direction; }
         /*!
          * @return the direction of the ray
          */
-        [[nodiscard]] Vector_3 getDirection() const { return m_direction; }
+        [[nodiscard]] Vector_X<3, value_type> getDirection() const { return m_direction; }
         /*!
          * sets the direction of the ray to the \p new_direction
          * @param new_direction the new direction for the ray
          */
-        void setDirection(const Vector_3& new_direction) { m_direction = new_direction; }
+        [[maybe_unused]] void setDirection(const Vector_X<3, value_type>& new_direction) { m_direction = new_direction; }
     };
 }

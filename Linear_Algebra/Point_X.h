@@ -16,27 +16,28 @@
 #include <numeric>
 
 #include "Vector_X.h"
+#include "LinearAlgebraTypeTraits.h"
 
 namespace linear_algebra_core
 {
-    template <size_t N>
+    template <size_t N, IsArithmetic value_type = double>
     class Point_X
     {
     private:
-        std::array<double, N> m_values;
+        std::array<value_type, N> m_values;
 
     public:
         Point_X() : m_values{} { }
 
-        template <typename... InitialValues>
+        template <DoesNotNarrowlyConvertTo<value_type>... InitialValues>
         explicit Point_X(InitialValues... initialValues)
         {
-            static_assert((std::is_convertible_v<InitialValues, double> && ...), "Parameters must be implicitly convertible to doubles");
             static_assert(N == sizeof...(InitialValues), "Incorrect number of parameters given to constructor");
-            m_values = std::array<double, N>{initialValues...};
+            m_values = std::array<value_type, N>{initialValues...};
         }
 
-        constexpr Point_X(std::initializer_list<double> initialValues)
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        constexpr Point_X(std::initializer_list<other_type> initialValues)
         {
             if(initialValues.size() != N) {
                 throw std::invalid_argument("Point_X constructor expected a initializer_list of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
@@ -44,12 +45,19 @@ namespace linear_algebra_core
             std::copy_n(std::begin(initialValues), N, begin());
         }
 
-        explicit Point_X(const std::array<double, N>& initialValues) : m_values{initialValues} { }
-        explicit Point_X(const std::array<double, N>&& initialValues) : m_values{initialValues} { }
-        explicit Point_X(const double (&initialValues)[N]) {
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        explicit Point_X(const std::array<other_type, N>& initialValues) : m_values{initialValues} { }
+
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        explicit Point_X(const std::array<other_type, N>&& initialValues) : m_values{initialValues} { }
+
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        explicit Point_X(const other_type (&initialValues)[N]) {
             std::copy_n(std::begin(initialValues), N, std::begin(m_values));
         }
-        explicit Point_X(const std::vector<double>& initialValues) {
+
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        explicit Point_X(const std::vector<other_type>& initialValues) {
             if(initialValues.size() != N) {
                 throw std::out_of_range("Point_X constructor expected a std::vector of size " + std::to_string(N) + ", but got size " + std::to_string(initialValues.size()));
             }
@@ -57,10 +65,33 @@ namespace linear_algebra_core
         }
 
         ~Point_X() = default;
-        Point_X(const Point_X<N>& other) = default;
-        Point_X(Point_X<N>&& other) noexcept = default;
-        Point_X<N>& operator=(const Point_X<N>& other) = default;
-        Point_X<N>& operator=(Point_X<N>&& other) noexcept = default;
+
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        Point_X(const Point_X<N, other_type>& other)
+        {
+            if(&other != this) [[likely]] {
+                std::copy_n(other.cbegin(), N, begin());
+            }
+        }
+
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        Point_X(Point_X<N, other_type>&& other) noexcept : m_values{std::move(other.m_values)} { }
+
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        Point_X<N, value_type>& operator=(const Point_X<N, other_type>& other)
+        {
+            if(&other != this) [[likely]] {
+                std::copy_n(other.cbegin(), N, begin());
+            }
+            return *this;
+        }
+
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        Point_X<N, value_type>& operator=(Point_X<N, other_type>&& other) noexcept
+        {
+            m_values = std::move(other.m_values);
+            return *this;
+        }
 
         // iterator exposure
         auto begin()   { return std::begin(m_values);   }
@@ -76,25 +107,25 @@ namespace linear_algebra_core
          * @param index index of the value to return
          * @return the value at the given \p index
          */
-        [[nodiscard]] inline double operator[](size_t index) const { return m_values[index]; }
+        [[nodiscard]] inline value_type operator[](size_t index) const { return m_values[index]; }
         /*!
          * @param index index of the value to return
          * @return the value at the given \p index
          */
-        [[nodiscard]] inline double& operator[](size_t index) { return m_values[index]; }
+        [[nodiscard]] inline value_type& operator[](size_t index) { return m_values[index]; }
 
         /*!
          * Throws an exception if index is out of bounds
          * @param index index of the value to return
          * @return the value at the given \p index
          */
-        [[nodiscard]] inline double at(size_t index) const { return m_values.at(index); }
+        [[nodiscard]] inline value_type at(size_t index) const { return m_values.at(index); }
         /*!
          * Throws an exception if index is out of bounds
          * @param index index of the value to return
          * @return the value at the given \p index
          */
-        [[nodiscard]] inline double& at(size_t index) { return m_values.at(index); }
+        [[nodiscard]] inline value_type& at(size_t index) { return m_values.at(index); }
 
         /*!
          * Compile-time element access
@@ -102,9 +133,8 @@ namespace linear_algebra_core
          * @return a copy of the value at the given \p Index
          */
         template<size_t Index>
-        [[nodiscard]] constexpr double getValue() const
+        [[nodiscard]] constexpr value_type getValue() const requires (Index < N)
         {
-            static_assert(Index < N, "index was out of bounds");
             return std::get<Index>(m_values);
         }
         /*!
@@ -113,9 +143,8 @@ namespace linear_algebra_core
          * @return a reference to the value at the given \p Index
          */
         template<size_t Index>
-        [[nodiscard]] constexpr double& getValue()
+        [[nodiscard]] constexpr value_type& getValue() requires (Index < N)
         {
-            static_assert(Index < N, "index was out of bounds");
             return std::get<Index>(m_values);
         }
 
@@ -125,11 +154,10 @@ namespace linear_algebra_core
          * @param scalar Value to scale the point by
          * @return The scaled point
          */
-        template<typename T>
-        [[nodiscard]] Point_X<N> operator*(T scalar) const
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        [[nodiscard]] Point_X<N, value_type> operator*(T scalar) const
         {
-            static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
-            Point_X<N> result;
+            Point_X<N, value_type> result;
             std::transform(cbegin(), cend(), result.begin(), [scalar](auto value) { return value * scalar; });
             return result;
         }
@@ -141,10 +169,10 @@ namespace linear_algebra_core
          * @param rhs Point to be scaled
          * @return the scaled point
          */
-        template<typename T>
-        [[nodiscard]] friend inline Point_X<N> operator*(T scalar, const Point_X<N>& rhs)
+        template<IsArithmetic result_value_type, DoesNotNarrowlyConvertTo<result_value_type> T>
+        [[nodiscard]] friend inline
+        Point_X<N, result_value_type> operator*(T scalar, const Point_X<N, result_value_type>& rhs)
         {
-            static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
             return rhs * scalar;
         }
 
@@ -154,10 +182,9 @@ namespace linear_algebra_core
          * @param scalar value to scale this Point by
          * @return a reference to this Point
          */
-        template<typename T>
-        Point_X<N>& operator*=(T scalar)
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        Point_X<N, value_type>& operator*=(T scalar)
         {
-            static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
             std::transform(cbegin(), cend(), begin(), [scalar](auto value) { return value * scalar; });
             return *this;
         }
@@ -168,15 +195,14 @@ namespace linear_algebra_core
          * @param scalar value to scale this point by
          * @return the scaled point
          */
-        template<typename T>
-        [[nodiscard]] Point_X<N> operator/(T scalar) const
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        [[nodiscard]] Point_X<N, value_type> operator/(T scalar) const
         {
-            static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
             if(scalar == 0.0)
             {
-                throw std::domain_error("Cannot divide a point by 0");
+                throw std::logic_error("Cannot divide a point by 0");
             }
-            Point_X<N> result;
+            Point_X<N, value_type> result;
             std::transform(cbegin(), cend(), result.begin(), [scalar](auto value) { return value / scalar; });
             return result;
         }
@@ -187,13 +213,12 @@ namespace linear_algebra_core
          * @param scalar value to scale this vector by
          * @return a reference to this vector
          */
-        template<typename T>
-        Point_X<N>& operator/=(T scalar)
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        Point_X<N, value_type>& operator/=(T scalar)
         {
-            static_assert(std::is_arithmetic_v<T>, "scalar must be an arithmetic type");
             if(scalar == 0.0)
             {
-                throw std::domain_error("Cannot divide a point by 0");
+                throw std::logic_error("Cannot divide a point by 0");
             }
             std::transform(cbegin(), cend(), begin(), [scalar](auto value) { return value / scalar; });
             return *this;
@@ -204,9 +229,10 @@ namespace linear_algebra_core
          * @param rhs Vector used to translate this point
          * @return The translated point
          */
-        [[nodiscard]] Point_X<N> operator+(const Vector_X<N>& rhs) const
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        [[nodiscard]] Point_X<N, value_type> operator+(const Vector_X<N, other_type>& rhs) const
         {
-            Point_X<N> result;
+            Point_X<N, value_type> result;
             std::transform(cbegin(), cend(), rhs.cbegin(), result.begin(), [](auto left, auto right) { return left + right; });
             return result;
         }
@@ -216,7 +242,8 @@ namespace linear_algebra_core
          * @param rhs Vector used to translate this point
          * @return a reference to this point
          */
-        Point_X<N>& operator+=(const Vector_X<N>& rhs)
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        Point_X<N, value_type>& operator+=(const Vector_X<N, other_type>& rhs)
         {
             std::transform(cbegin(), cend(), rhs.cbegin(), begin(), [](auto left, auto right) { return left + right; });
             return *this;
@@ -226,9 +253,9 @@ namespace linear_algebra_core
          * Unary negation operator
          * @return a negated version of this point
          */
-        [[nodiscard]] inline Point_X<N> operator-() const
+        [[nodiscard]] inline Point_X<N, value_type> operator-() const
         {
-            return (*this) * -1.0;
+            return (*this) * static_cast<value_type>(-1.0);
         }
 
         /*!
@@ -236,9 +263,10 @@ namespace linear_algebra_core
          * @param rhs The point to subtract from this point
          * @return The result of the subtraction
          */
-        [[nodiscard]] Vector_X<N> operator-(const Point_X<N>& rhs) const
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        [[nodiscard]] Vector_X<N, value_type> operator-(const Point_X<N, other_type>& rhs) const
         {
-            Vector_X<N> result;
+            Vector_X<N, value_type> result;
             std::transform(cbegin(), cend(), rhs.cbegin(), result.begin(), [](auto left, auto right) { return left - right; });
             return result;
         }
@@ -248,9 +276,10 @@ namespace linear_algebra_core
          * @param rhs Vector used to translate the point by
          * @return The result of the subtraction
          */
-        [[nodiscard]] Point_X<N> operator-(const Vector_X<N>& rhs) const
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        [[nodiscard]] Point_X<N, value_type> operator-(const Vector_X<N, other_type>& rhs) const
         {
-            Point_X<N> result;
+            Point_X<N, value_type> result;
             std::transform(cbegin(), cend(), rhs.cbegin(), result.begin(), [](auto left, auto right) { return left - right; });
             return result;
         }
@@ -260,7 +289,8 @@ namespace linear_algebra_core
          * @param rhs Vector used to translate this point by
          * @return a reference to this point
          */
-        Point_X<N>& operator-=(const Vector_X<N>& rhs)
+        template<DoesNotNarrowlyConvertTo<value_type> other_type>
+        Point_X<N, value_type>& operator-=(const Vector_X<N, other_type>& rhs)
         {
             std::transform(cbegin(), cend(), rhs.cbegin(), begin(), [](auto left, auto right) { return left - right; });
             return *this;
@@ -270,20 +300,23 @@ namespace linear_algebra_core
          * @param rhs point to check equality against
          * @return true if \p rhs and this point are equal. false otherwise
          */
-        [[nodiscard]] bool operator==(const Point_X<N>& rhs) const
+        template<IsArithmetic other_type>
+        [[nodiscard]] bool operator==(const Point_X<N, other_type>& rhs) const
         {
-            bool isEqual = true;
-            for(int i = 0; isEqual && i < N; i++) {
-                isEqual = (m_values[i] == rhs[i]) && isEqual;
+            for(size_t i = 0; i < N; i++) {
+                if (m_values[i] != rhs[i]) {
+                    return false;
+                }
             }
-            return isEqual;
+            return true;
         }
 
         /*!
          * @param rhs point to check inequality against
          * @return true if \p rhs and this point are not equal. false otherwise
          */
-        [[nodiscard]] inline bool operator!=(const Point_X<N>& rhs) const
+        template<IsArithmetic other_type>
+        [[nodiscard]] inline bool operator!=(const Point_X<N, other_type>& rhs) const
         {
             return !(*this == rhs);
         }
@@ -297,7 +330,7 @@ namespace linear_algebra_core
             for(int i = 0; i < (N - 1); i++) {
                 output += std::to_string(m_values[i]) + ", ";
             }
-            if(N > 0) {
+            if constexpr (N > 0) {
                 output += std::to_string(m_values[N - 1]);
             }
             output += " }";
@@ -310,7 +343,7 @@ namespace linear_algebra_core
          * @param rhs point to be insert into \p out
          * @return a reference to \p out
          */
-        friend std::ostream& operator<<(std::ostream& out, const Point_X<N>& rhs)
+        friend std::ostream& operator<<(std::ostream& out, const Point_X<N, value_type>& rhs)
         {
             out << rhs.to_string();
             return out;
@@ -320,7 +353,7 @@ namespace linear_algebra_core
          * Square each element of this point
          * @return a reference to this point
          */
-        Point_X<N>& square()
+        Point_X<N, value_type>& square()
         {
             std::transform(cbegin(), cend(), begin(), [](auto value) { return value * value; });
             return *this;
@@ -329,18 +362,18 @@ namespace linear_algebra_core
         /*!
          * @return a squared copy of this point
          */
-        [[nodiscard]] inline Point_X<N> getSquared() const
+        [[nodiscard]] [[maybe_unused]] inline Point_X<N, value_type> getSquared() const
         {
-            Point_X<N> result {*this};
+            Point_X<N, value_type> result {*this};
             return result.square();
         }
 
         /*!
          * @return the sum of each element of this point
          */
-        [[nodiscard]] inline double sum_elements() const
+        [[nodiscard]] [[maybe_unused]] inline value_type sum_elements() const
         {
-            return std::accumulate(cbegin(), cend(), 0);
+            return std::accumulate(cbegin(), cend(), static_cast<value_type>(0));
         }
 
         /*!
@@ -350,25 +383,26 @@ namespace linear_algebra_core
          * @return The new point
          */
         template<size_t M>
-        Point_X<M> getAsDimension() const
+        [[maybe_unused]]
+        Point_X<M, value_type> getAsDimension() const
         {
-            Point_X<M> result;
-            for(int i = 0; i < M; i++) {
-                if(i < N) {
-                    result[i] = m_values[i];
-                } else {
-                    result[i] = 0.0;
-                }
+            if constexpr (M == N) {
+                return *this;
+            } else if constexpr (M < N) {
+                return Point_X<M, value_type>(cbegin(), cbegin() + M);
+            } else {
+                Point_X<M, value_type> result;
+                std::copy_n(cbegin(), N, result.begin());
+                return result;
             }
-            return result;
         }
 
         /*!
          * @return A vector filled with the values in this point
          */
-        [[nodiscard]] inline Vector_X<N> to_Vector() const
+        [[nodiscard]] [[maybe_unused]] inline Vector_X<N, value_type> to_Vector() const
         {
-            return Vector_X<N>{m_values};
+            return Vector_X<N, value_type>{m_values};
         }
 
         /*!
@@ -379,7 +413,8 @@ namespace linear_algebra_core
          * @param t the interpolation value. must be between 0.0 and 1.0
          * @return The interpolated point
          */
-        [[nodiscard]] static Point_X<N> linear_interpolation(const Point_X<N>& a, const Point_X<N>& b, double t)
+        template<IsArithmetic a_type, DoesNotNarrowlyConvertTo<a_type> b_type, DoesNotNarrowlyConvertTo<a_type> T>
+        [[nodiscard]] [[maybe_unused]] static Point_X<N, a_type> linear_interpolation(const Point_X<N, a_type>& a, const Point_X<N, b_type>& b, T t)
         {
             if(t > 1.0 || t < 0.0)
             {
@@ -389,6 +424,7 @@ namespace linear_algebra_core
         }
     };
 
+    using Point_2 = Point_X<2>;
     using Point_3 = Point_X<3>;
     using Point_4 = Point_X<4>;
 }
