@@ -48,6 +48,15 @@ namespace linear_algebra_core {
 
         template<DoesNotNarrowlyConvertTo<value_type> T>
         [[maybe_unused]]
+        explicit constexpr Matrix_MxN(const std::array<std::array<T, N>, M>& other)
+        {
+            for(int i = 0; i < M; i++) {
+                m_values[i] = Vector_X<N, value_type>{other[i]};
+            }
+        }
+
+        template<DoesNotNarrowlyConvertTo<value_type> T>
+        [[maybe_unused]]
         explicit constexpr Matrix_MxN(const std::array<Vector_X<N, T>, M>& other) : m_values{other} { }
 
         template<DoesNotNarrowlyConvertTo<value_type> T>

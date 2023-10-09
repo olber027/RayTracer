@@ -7,9 +7,11 @@ add_library(geometry
         Plane.h
         Plane.cpp
         BoundedPlane.h
-        BoundedPlane.cpp)
+        BoundedPlane.cpp
+        Triangle.h
+        Triangle.cpp)
 target_include_directories(geometry PUBLIC .)
-target_link_libraries(geometry PUBLIC linear_algebra_core color_core nlohmann_json)
+target_link_libraries(geometry PUBLIC linear_algebra_core color_core nlohmann_json utility)
 
 add_library(geometry_builder
         GeometryBuilder.cpp

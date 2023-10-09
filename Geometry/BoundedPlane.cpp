@@ -7,6 +7,7 @@
 #include "Vector_X.h"
 #include "Color.h"
 #include "json.h"
+#include "LinearAlgebraJsonParser.h"
 
 namespace geometry {
     using namespace linear_algebra_core;
@@ -36,73 +37,55 @@ namespace geometry {
 
     void BoundedPlane::fromJson(const nlohmann::json& json_node)
     {
-        std::vector<double> center {0, 0, 0};
-        std::vector<double> normal {0, 0, 0};
-        std::vector<int> color {0, 0, 0};
-        double width = 0;
-        double height = 0;
-        double rotationAngle = 0;
-        auto vector_to_string = [] (auto val) { return "[" + std::to_string(val[0]) + ", " + std::to_string(val[1]) + ", " + std::to_string(val[2]) + "]"; };
+        std::vector<double> center, normal;
+        nlohmann::json color_json, center_json, normal_json;
+        double width, height, rotationAngle;
 
         try {
-            center = json_node.at("center").get<std::vector<double>>();
-            if(center.size() != 3)
-            {
-                throw std::invalid_argument("'center' field must be specified in the form: [X, Y, Z]");
-            }
+            center_json = json_node.at("center");
         } catch(std::exception& e) {
-            throw std::invalid_argument("Could not find the required 'center' key. Using " + vector_to_string(center));
+            throw std::invalid_argument("Could not find the required 'center' key.");
         }
 
         try {
-            normal = json_node.at("normal").get<std::vector<double>>();
-            if(center.size() != 3)
-            {
-                throw std::invalid_argument("'normal' field must be specified in the form: [X, Y, Z]");
-            }
+            normal_json = json_node.at("normal");
         } catch(std::exception& e) {
-            throw std::invalid_argument("Could not find the required 'normal' key. Using " + vector_to_string(normal));
+            throw std::invalid_argument("Could not find the required 'normal' key.");
         }
 
         try {
-            color = json_node.at("color").get<std::vector<int>>();
-            if(color.size() != 3) {
-                throw std::invalid_argument("color must be specified in the form: [R, G, B]");
-            }
+            color_json = json_node.at("color");
         } catch(std::exception& e) {
-            throw std::invalid_argument("Could not find the required 'color' key. Using " + vector_to_string(color));
+            throw std::invalid_argument("Could not find the required 'color' key.");
         }
 
         try {
-            width = json_node.at("width").get<double>();
-            if(width < 0) {
-                throw std::invalid_argument("width cannot have a negative value");
-            }
+            width = json_node.at("width").get<decltype(width)>();
         } catch(std::exception& e) {
-            throw std::invalid_argument("Could not find the required 'width' key. Using " + std::to_string(width));
+            throw std::invalid_argument("Could not find the required 'width' key.");
+        }
+        if(width < 0) {
+            throw std::invalid_argument("width cannot have a negative value");
         }
 
         try {
-            height = json_node.at("height").get<double>();
-            if(height < 0) {
-                throw std::invalid_argument("height cannot have a negative value");
-            }
+            height = json_node.at("height").get<decltype(height)>();
         } catch(std::exception& e) {
-            throw std::invalid_argument("Could not find the required 'height' key. Using " + std::to_string(height));
+            throw std::invalid_argument("Could not find the required 'height' key.");
+        }
+        if(height < 0) {
+            throw std::invalid_argument("height cannot have a negative value");
         }
 
         try {
-            rotationAngle = json_node.at("rotation_angle").get<double>();
-            if(rotationAngle < 0) {
-                throw std::invalid_argument("rotation_angle cannot have a negative value");
-            }
+            rotationAngle = json_node.at("rotation_angle").get<decltype(rotationAngle)>();
         } catch(std::exception& e) {
-            throw std::invalid_argument("Could not find the required 'rotation_angle' key. Using " + std::to_string(rotationAngle));
+            throw std::invalid_argument("Could not find the required 'rotation_angle' key.");
         }
 
-        m_center = Point_3(center);
-        m_normal = Vector_3(normal);
-        m_color = Color(color[0], color[1], color[2]);
+        m_center = utility::PointFromJson<3>(center_json);
+        m_normal = utility::VectorFromJson<3>(normal_json);
+        m_color.fromJson(color_json);
         m_width = width;
         m_height = height;
         m_rotationAngle = rotationAngle;

@@ -7,6 +7,7 @@
 #include "Vector_X.h"
 #include "Color.h"
 #include "json.h"
+#include "LinearAlgebraJsonParser.h"
 
 namespace geometry {
     using namespace linear_algebra_core;
@@ -32,43 +33,29 @@ namespace geometry {
 
     void Plane::fromJson(const nlohmann::json& json_node)
     {
-        std::vector<double> center {0, 0, 0};
-        std::vector<double> normal {0, 0, 0};
-        std::vector<int> color {0, 0, 0};
-        auto vector_to_string = [] (auto val) { return "[" + std::to_string(val[0]) + ", " + std::to_string(val[1]) + ", " + std::to_string(val[2]) + "]"; };
+        nlohmann::json color_json, center_json, normal_json;
 
         try {
-            center = json_node.at("center").get<std::vector<double>>();
-            if(center.size() != 3)
-            {
-                throw std::invalid_argument("'center' field must be specified in the form: [X, Y, Z]");
-            }
+            center_json = json_node.at("center");
         } catch(std::exception& e) {
-            throw std::invalid_argument("Could not find the required 'center' key. Using " + vector_to_string(center));
+            throw std::invalid_argument("Could not find the required 'center' key.");
         }
 
         try {
-            normal = json_node.at("normal").get<std::vector<double>>();
-            if(center.size() != 3)
-            {
-                throw std::invalid_argument("'normal' field must be specified in the form: [X, Y, Z]");
-            }
+            normal_json = json_node.at("normal");
         } catch(std::exception& e) {
-            throw std::invalid_argument("Could not find the required 'normal' key. Using " + vector_to_string(normal));
+            throw std::invalid_argument("Could not find the required 'normal' key.");
         }
 
         try {
-            color = json_node.at("color").get<std::vector<int>>();
-            if(color.size() != 3) {
-                throw std::invalid_argument("color must be specified in the form: [R, G, B]");
-            }
+            color_json = json_node.at("color");
         } catch(std::exception& e) {
-            throw std::invalid_argument("Could not find the required 'color' key. Using " + vector_to_string(color));
+            throw std::invalid_argument("Could not find the required 'color' key.");
         }
 
-        m_center = Point_3(center);
-        m_normal = Vector_3(normal);
-        m_color = Color(color[0], color[1], color[2]);
+        m_center = utility::PointFromJson<3>(center_json);
+        m_normal = utility::VectorFromJson<3>(normal_json);
+        m_color.fromJson(color_json);
     }
 
     Color Plane::getColorAt(const Point_3& point) const

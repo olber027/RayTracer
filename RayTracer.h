@@ -15,7 +15,8 @@ private:
     Environment m_environment;
     Scene       m_scene;
     Image       m_image;
-    size_t m_samples_per_pixel;
+    size_t      m_samples_per_pixel;
+    size_t      m_num_threads;
 public:
     /*!
      * Construct the ray tracer from the given configurations
@@ -32,12 +33,12 @@ public:
      */
     void trace();
 
-    [[nodiscard]] inline const Image& getImage() { return m_image; }
-    [[nodiscard]] inline Image getImage() const { return m_image; }
+    [[nodiscard]] const Image& getImage() { return m_image; }
+    [[nodiscard]] Image getImage() const  { return m_image; }
 
-    [[nodiscard]] inline const Scene& getScene() { return m_scene; }
-    [[nodiscard]] inline Scene getScene() const { return m_scene; }
+    [[nodiscard]] const Scene& getScene() { return m_scene; }
+    [[nodiscard]] Scene getScene() const  { return m_scene; }
 
-    [[nodiscard]] inline const Environment& getEnvironment() { return m_environment; }
-    [[nodiscard]] inline Environment getEnvironment() const { return m_environment; }
+    [[nodiscard]] const Environment& getEnvironment() { return m_environment; }
+    [[nodiscard]] Environment getEnvironment() const  { return m_environment; }
 };

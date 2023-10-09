@@ -15,13 +15,16 @@ namespace color_core
 
     public:
 
+        Color() : values{0.0, 0.0, 0.0, 1.0} {}
         explicit Color(double r, double g, double b) : Color(r, g, b, 1.0) { }
         explicit Color(double r, double g, double b, double alpha) : values{r, g, b, alpha} { }
         explicit Color(int r, int g, int b) : Color(r, g, b, 1.0) { }
         explicit Color(int r, int g, int b, double alpha) : values{static_cast<double>(r), static_cast<double>(g),
                                                                    static_cast<double>(b), alpha} { }
+        Color(nlohmann::json& j) {
+            fromJson(j);
+        }
 
-        Color() = default;
         ~Color() = default;
         Color(const Color& other) = default;
         Color(Color&& other) noexcept = default;
@@ -59,6 +62,20 @@ namespace color_core
             values[2] += rhs.B();
         }
 
+        void fromJson(const nlohmann::json& json_object)
+        {
+            std::vector<double> rgb;
+            try {
+                rgb = json_object.get<decltype(rgb)>();
+            } catch(std::exception& e) {
+                throw std::invalid_argument("json could not be converted to a vector");
+            }
+            if(rgb.size() < 3 || rgb.size() > 4) {
+                throw std::invalid_argument("color must be comprised of an R, G, and B value, with an optional alpha value");
+            }
+            values = {rgb[0], rgb[1], rgb[2], values[3]};
+        }
+
         [[nodiscard]] std::string to_string() const
         {
             return std::to_string(R()) + " " + std::to_string(G()) + " " + std::to_string(B());
@@ -86,7 +103,8 @@ namespace color_core
             return Color(
                 first.R() + (t * (second.R() - first.R())),
                 first.G() + (t * (second.G() - first.G())),
-                first.B() + (t * (second.B() - first.B()))
+                first.B() + (t * (second.B() - first.B())),
+                first.Alpha() + (t * (second.Alpha() - first.Alpha()))
             );
         }
 

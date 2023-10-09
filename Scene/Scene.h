@@ -26,7 +26,9 @@ namespace scene {
          * Constructs a Scene from the given \p scene_config
          * @param scene_config the json config for the scene
          */
-        explicit Scene(const nlohmann::json& scene_config) : m_camera(scene_config.at("camera_config")), m_screen(scene_config.at("screen_config")) { }
+        explicit Scene(const nlohmann::json& scene_config) {
+            fromJson(scene_config);
+        }
 
         /*!
          * Get the ray produced by tracing from the camera position, to the corresponding \p i and \p j coordinate of the screen.
@@ -47,5 +49,25 @@ namespace scene {
          * @return the Scene object
          */
         [[nodiscard]] const Screen& getScreen() const { return m_screen; }
+
+        void fromJson(const nlohmann::json& scene_json)
+        {
+            nlohmann::json camera_json, screen_json;
+
+            try {
+                camera_json = scene_json.at("camera_config");
+            } catch(std::exception& e) {
+                throw std::invalid_argument("Scene config must contain a 'camera_config' key");
+            }
+
+            try {
+                screen_json = scene_json.at("screen_config");
+            } catch(std::exception& e) {
+                throw std::invalid_argument("Scene config must contain a 'screen_config' key");
+            }
+
+            m_camera.fromJson(camera_json);
+            m_screen.fromJson(screen_json);
+        }
     };
 }

@@ -50,44 +50,7 @@ namespace scene {
          */
         explicit Screen(const nlohmann::json& screen_config)
         {
-            std::vector<double> top_left{0, 0, 0};
-            std::vector<double> width{0, 0, 0};
-            std::vector<double> height{0, 0, 0};
-            auto vector_to_string = [] (auto val) { return "[" + std::to_string(val[0]) + ", " + std::to_string(val[1]) + ", " + std::to_string(val[2]) + "]"; };
-
-            try {
-                top_left = screen_config.at("reference_corner").get<std::vector<double>>();
-                if(top_left.size() != 3)
-                {
-                    throw std::invalid_argument("'reference_corner' field must be specified in the form: [X, Y, Z]");
-                }
-            } catch(std::exception& e) {
-                throw std::invalid_argument("Could not find the required 'reference_corner' key. Using " + vector_to_string(top_left));
-            }
-
-            try {
-                width = screen_config.at("width").get<std::vector<double>>();
-                if(width.size() != 3)
-                {
-                    throw std::invalid_argument("'width' field must be specified in the form: [X, Y, Z]");
-                }
-            } catch(std::exception& e) {
-                throw std::invalid_argument("Could not find the required 'width' key. Using " + vector_to_string(width));
-            }
-
-            try {
-                height = screen_config.at("height").get<std::vector<double>>();
-                if(height.size() != 3)
-                {
-                    throw std::invalid_argument("'height' field must be specified in the form: [X, Y, Z]");
-                }
-            } catch(std::exception& e) {
-                throw std::invalid_argument("Could not find the required 'height' key. Using " + vector_to_string(height));
-            }
-
-            m_referenceCorner = Point_3(top_left);
-            m_width           = Vector_3(width);
-            m_height = Vector_3(height);
+            fromJson(screen_config);
         }
 
         /*!
@@ -161,5 +124,47 @@ namespace scene {
          * @return the reference corner for the screen
          */
         [[nodiscard]] const Point_3& getReferenceCorner() const { return m_referenceCorner; }
+
+        void fromJson(const nlohmann::json& screen_json)
+        {
+            std::vector<double> top_left{0, 0, 0};
+            std::vector<double> width{0, 0, 0};
+            std::vector<double> height{0, 0, 0};
+            auto vector_to_string = [] (auto val) { return "[" + std::to_string(val[0]) + ", " + std::to_string(val[1]) + ", " + std::to_string(val[2]) + "]"; };
+
+            try {
+                top_left = screen_json.at("reference_corner").get<std::vector<double>>();
+                if(top_left.size() != 3)
+                {
+                    throw std::invalid_argument("'reference_corner' field must be specified in the form: [X, Y, Z]");
+                }
+            } catch(std::exception& e) {
+                throw std::invalid_argument("Could not find the required 'reference_corner' key.");
+            }
+
+            try {
+                width = screen_json.at("width").get<std::vector<double>>();
+                if(width.size() != 3)
+                {
+                    throw std::invalid_argument("'width' field must be specified in the form: [X, Y, Z]");
+                }
+            } catch(std::exception& e) {
+                throw std::invalid_argument("Could not find the required 'width' key.");
+            }
+
+            try {
+                height = screen_json.at("height").get<std::vector<double>>();
+                if(height.size() != 3)
+                {
+                    throw std::invalid_argument("'height' field must be specified in the form: [X, Y, Z]");
+                }
+            } catch(std::exception& e) {
+                throw std::invalid_argument("Could not find the required 'height' key.");
+            }
+
+            m_referenceCorner = Point_3(top_left);
+            m_width           = Vector_3(width);
+            m_height = Vector_3(height);
+        }
     };
 }

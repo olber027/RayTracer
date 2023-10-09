@@ -44,9 +44,7 @@ namespace environment
          */
         explicit Environment(const nlohmann::json& environment_config)
         {
-            addGeometryList(environment_config.at("geometry"));
-            std::vector<int> backgroundColor = environment_config.at("background_color");
-            m_backgroundColor = Color(backgroundColor[0], backgroundColor[1], backgroundColor[2]);
+            fromJson(environment_config);
         }
 
         const GeometryContainer& getGeometry() { return m_geometry; }
@@ -78,7 +76,7 @@ namespace environment
          * @param ray Ray to check for intersection
          * @return The closest geometry object
          */
-        [[nodiscard]] std::shared_ptr<geometry::Geometry> getFirstIntersectedGeometry(const Ray& ray) const;
+        [[nodiscard]] std::shared_ptr<Geometry> getFirstIntersectedGeometry(const Ray& ray) const;
 
         /*!
          * Retrieves all geometry that the given \p ray intersects
@@ -93,5 +91,24 @@ namespace environment
          * @return The blended color
          */
         [[nodiscard]] Color getBackgroundColor(const Ray& ray) const;
+
+        void fromJson(const nlohmann::json& environment_json)
+        {
+            nlohmann::json geometry_json, background_color_json;
+            try {
+                geometry_json = environment_json.at("geometry");
+            } catch(std::exception& e) {
+                throw std::invalid_argument("could not find the required 'geometry' key.");
+            }
+
+            try {
+                background_color_json = environment_json.at("background_color");
+            } catch(std::exception& e) {
+                throw std::invalid_argument("could not find the required 'background_color' key.");
+            }
+
+            addGeometryList(geometry_json);
+            m_backgroundColor.fromJson(background_color_json);
+        }
     };
 }

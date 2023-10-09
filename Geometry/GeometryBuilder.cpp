@@ -6,6 +6,7 @@
 #include "GeometryBuilder.h"
 #include "Sphere.h"
 #include "Plane.h"
+#include "Triangle.h"
 #include "BoundedPlane.h"
 
 namespace geometry
@@ -20,8 +21,10 @@ namespace geometry
             result = std::make_shared<Plane>();
         } else if(object_type == "bounded_plane") {
             result = std::make_shared<BoundedPlane>();
+        } else if(object_type == "triangle") {
+            result = std::make_shared<Triangle>();
         } else {
-            throw std::invalid_argument("json geometry objects must contain a 'type' field with one of the following values: \n [sphere, plane, bounded_plane]");
+            throw std::invalid_argument("json geometry objects must contain a 'type' field with one of the following values: \n [sphere, plane, bounded_plane, triangle]");
         }
         result->fromJson(json_object);
         return result;
