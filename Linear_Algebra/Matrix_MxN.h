@@ -11,7 +11,7 @@
 
 namespace linear_algebra_core {
 
-    template<size_t M, size_t N, typename value_type = double>
+    template<size_t M, size_t N, typename value_type>
     class Matrix_MxN {
     private:
         std::array<Vector_X<N, value_type>, M> m_values{};
@@ -424,7 +424,4 @@ namespace linear_algebra_core {
             return (*this);
         }
     };
-    using Matrix_2x2 = Matrix_MxN<2, 2>;
-    using Matrix_3x3 = Matrix_MxN<3, 3>;
-    using Matrix_4x4 = Matrix_MxN<4, 4>;
 }

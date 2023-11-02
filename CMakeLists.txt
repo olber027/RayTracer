@@ -16,19 +16,13 @@ add_subdirectory(Scene)
 # Environment depends on Geometry, linear algebra, and color
 add_subdirectory(Environment)
 
-include(FetchContent)
-FetchContent_Declare(SFML
-        GIT_REPOSITORY https://github.com/SFML/SFML.git
-        GIT_TAG 2.6.x)
-FetchContent_MakeAvailable(SFML)
-
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 add_executable(ray_tracer
         main.cpp
         RayTracer.h
-        RayTracer.cpp)
+)
 
 target_include_directories(ray_tracer PUBLIC .)
 
@@ -43,6 +37,5 @@ target_link_libraries(ray_tracer
                 environment
                 scene
         PRIVATE
-                sfml-graphics
                 Threads::Threads
         )

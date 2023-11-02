@@ -3,6 +3,8 @@
 //
 #pragma once
 
+#include <type_traits>
+
 namespace linear_algebra_core {
     namespace detail {
         template<typename From, typename To, typename = void>
@@ -26,6 +28,9 @@ namespace linear_algebra_core {
 
     template<typename T>
     concept IsArithmetic = std::is_arithmetic_v<T>;
+
+    template<typename T>
+    concept IsFloatingPoint = std::is_floating_point_v<T>;
 
     template<typename From, typename To>
     concept DoesNotNarrowlyConvertTo = IsArithmetic<To> && IsArithmetic<From> && detail::is_not_narrowing_conversion_v<From, To>;

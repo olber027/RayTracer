@@ -20,7 +20,7 @@
 namespace linear_algebra_core
 {
 
-    template <size_t N, IsArithmetic value_type = double>
+    template <size_t N, IsArithmetic value_type>
     class Vector_X
     {
     private:
@@ -249,7 +249,7 @@ namespace linear_algebra_core
         template<DoesNotNarrowlyConvertTo<value_type> T>
         Vector_X<N, value_type>& operator*=(T scalar)
         {
-            std::transform(cbegin(), cend(), begin(), [scalar](auto value) { return value * scalar; });
+            std::for_each(begin(), end(), [scalar](auto& value) { value *= scalar; });
             return *this;
         }
 
@@ -262,10 +262,6 @@ namespace linear_algebra_core
         template<DoesNotNarrowlyConvertTo<value_type> T>
         [[nodiscard]] Vector_X<N, value_type> operator/(T scalar) const
         {
-            if(scalar == 0.0)
-            {
-                throw std::logic_error("Cannot divide a vector by 0");
-            }
             Vector_X<N, value_type> result;
             std::transform(cbegin(), cend(), result.begin(), [scalar](auto value) { return value / scalar; });
             return result;
@@ -280,11 +276,7 @@ namespace linear_algebra_core
         template<DoesNotNarrowlyConvertTo<value_type> T>
         Vector_X<N, value_type>& operator/=(T scalar)
         {
-            if(scalar == 0.0)
-            {
-                throw std::logic_error("Cannot divide a vector by 0");
-            }
-            std::transform(cbegin(), cend(), begin(), [scalar](auto value) { return value / scalar; });
+            std::for_each(begin(), end(), [scalar](auto& value) { value /= scalar; });
             return *this;
         }
 
@@ -319,7 +311,8 @@ namespace linear_algebra_core
          */
         [[nodiscard]] inline Vector_X<N, value_type> operator-() const
         {
-            return (*this) * static_cast<value_type>(-1.0);
+            std::for_each(begin(), end(), [](auto& value) { value *= -1; });
+            return *this;
         }
 
         /*!
@@ -355,12 +348,7 @@ namespace linear_algebra_core
         template<IsArithmetic other_type>
         [[nodiscard]] bool operator==(const Vector_X<N, other_type>& rhs) const
         {
-            for(size_t i = 0; i < N; i++) {
-                if (m_values[i] != rhs[i]) {
-                    return false;
-                }
-            }
-            return true;
+            return std::equal(cbegin(), cend(), rhs.cbegin(), rhs.cend());
         }
 
         /*!
@@ -371,7 +359,7 @@ namespace linear_algebra_core
         template<IsArithmetic other_type>
         [[nodiscard]] inline bool operator!=(const Vector_X<N, other_type>& rhs) const
         {
-            return !(*this == rhs);
+            return !std::equal(cbegin(), cend(), rhs.cbegin(), rhs.cend());
         }
 
         /*!
@@ -380,8 +368,8 @@ namespace linear_algebra_core
         [[nodiscard]] inline value_type getMagnitudeSquared() const
         {
             value_type result = 0;
-            for(int i = 0; i < N; i++) {
-                result += m_values[i] * m_values[i];
+            for(auto value : m_values) {
+                result += value * value;
             }
             return result;
         }
@@ -400,7 +388,8 @@ namespace linear_algebra_core
          */
         inline Vector_X<N, value_type>& normalize()
         {
-            (*this) /= getMagnitude();
+            value_type inverse_magnitude = 1 / getMagnitude();
+            (*this) *= inverse_magnitude;
             return *this;
         }
 
@@ -409,7 +398,8 @@ namespace linear_algebra_core
          */
         [[nodiscard]] inline Vector_X<N, value_type> getUnitVector() const
         {
-            return (*this) / getMagnitude();
+            value_type inverse_magnitude = 1 / getMagnitude();
+            return (*this) * inverse_magnitude;
         }
 
         /*!
@@ -418,7 +408,7 @@ namespace linear_algebra_core
          */
         Vector_X<N, value_type>& square()
         {
-            std::transform(cbegin(), cend(), begin(), [](auto value) { return value * value; });
+            std::for_each(begin(), end(), [](auto& value) { value *= value; });
             return (*this);
         }
 
@@ -468,8 +458,8 @@ namespace linear_algebra_core
         Vector_X<M, value_type> getAsDimension() const
         {
             if constexpr (M == N) {
-				return *this; 
-			} else if constexpr (M < N) {
+                return *this;
+            } else if constexpr (M < N) {
                 return Vector_X<M, value_type>(cbegin(), cbegin() + M);
             } else {
                 Vector_X<M, value_type> result;
@@ -565,7 +555,7 @@ namespace linear_algebra_core
          * @param rhs the vector to add to \p out
          * @return a reference to \p out
          */
-        friend std::ostream& operator<<(std::ostream& out, const Vector_X<N>& rhs)
+        friend std::ostream& operator<<(std::ostream& out, const Vector_X<N, value_type>& rhs)
         {
             out << rhs.to_string();
             return out;
@@ -596,7 +586,7 @@ namespace linear_algebra_core
          */
         template<IsArithmetic a_type, DoesNotNarrowlyConvertTo<a_type> b_type, DoesNotNarrowlyConvertTo<a_type> T>
         [[nodiscard]] static
-        Vector_X<N> linear_interpolation(const Vector_X<N, a_type>& a, const Vector_X<N, b_type>& b, T t)
+        Vector_X<N, value_type> linear_interpolation(const Vector_X<N, a_type>& a, const Vector_X<N, b_type>& b, T t)
         {
             if(t > 1.0 || t < 0.0)
             {
@@ -606,11 +596,10 @@ namespace linear_algebra_core
         }
     };
 
-    using Vector_2 = Vector_X<2>;
-    using Vector_3 = Vector_X<3>;
-    using Vector_4 = Vector_X<4>;
-
-    [[nodiscard]] [[maybe_unused]] static constexpr Vector_3 getUnitX() { return {1.0, 0.0, 0.0}; }
-    [[nodiscard]] [[maybe_unused]] static constexpr Vector_3 getUnitY() { return {0.0, 1.0, 0.0}; }
-    [[nodiscard]] [[maybe_unused]] static constexpr Vector_3 getUnitZ() { return {0.0, 0.0, 1.0}; }
+    template<size_t N, IsArithmetic value_type, size_t unit_dimension>
+    static Vector_X<N, value_type> getUnit_N() {
+        Vector_X<N, value_type> result{};
+        result[unit_dimension] = static_cast<value_type>(1);
+        return result;
+    }
 }

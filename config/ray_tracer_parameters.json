@@ -1,4 +1,4 @@
 {
   "samples_per_pixel" : 1,
-  "number_of_threads" : 30
+  "number_of_threads" : -1
 }

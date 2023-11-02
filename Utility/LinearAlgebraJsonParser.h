@@ -10,7 +10,7 @@
 
 namespace utility {
 
-    template<size_t N, typename value_type=double>
+    template<size_t N, typename value_type>
     [[nodiscard]] inline linear_algebra_core::Point_X<N, value_type> PointFromJson(const nlohmann::json& point_json)
     {
         std::vector<value_type> point;
@@ -26,7 +26,7 @@ namespace utility {
         return linear_algebra_core::Point_X<N, value_type>(point);
     }
 
-    template<size_t N, typename value_type=double>
+    template<size_t N, typename value_type>
     [[nodiscard]] inline linear_algebra_core::Vector_X<N, value_type> VectorFromJson(const nlohmann::json& vector_json)
     {
         std::vector<value_type> vector;
@@ -42,7 +42,8 @@ namespace utility {
         return linear_algebra_core::Vector_X<N, value_type>(vector);
     }
 
-    [[nodiscard]] inline linear_algebra_core::Ray RayFromJson(const nlohmann::json& ray_json)
+    template<size_t N, typename value_type>
+    [[nodiscard]] inline linear_algebra_core::Ray<N, value_type> RayFromJson(const nlohmann::json& ray_json)
     {
         nlohmann::json origin_json, direction_json;
         try {
@@ -57,8 +58,8 @@ namespace utility {
             throw std::invalid_argument("ray json must have the key 'direction'.");
         }
 
-        return linear_algebra_core::Ray(PointFromJson<3, double>(origin_json),
-                                         VectorFromJson<3, double>(direction_json));
+        return linear_algebra_core::Ray<N, value_type>(PointFromJson<N, value_type>(origin_json),
+                                                       VectorFromJson<N, value_type>(direction_json));
     }
 
 }

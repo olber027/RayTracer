@@ -3,7 +3,9 @@
 //
 
 #pragma once
+#include <type_traits>
 
+#include "LinearAlgebraTypeTraits.h"
 #include "Point_X.h"
 #include "Vector_X.h"
 #include "json.h"
@@ -11,9 +13,13 @@
 namespace scene {
     using namespace linear_algebra_core;
 
+    template<IsFloatingPoint value_type>
     class Screen
     {
     private:
+        using Point_3 = Point_X<3, value_type>;
+        using Vector_3 = Vector_X<3, value_type>;
+
         Point_3  m_referenceCorner;
         Vector_3 m_width;
         Vector_3 m_height;
@@ -32,8 +38,8 @@ namespace scene {
          * @param reference_corner The reference corner for the screen
          */
         explicit Screen(const Point_3& reference_corner) : m_referenceCorner(reference_corner),
-                                                   m_width(getUnitX()),
-                                                   m_height(Vector_3(0.0, -1.0, 0.0)) { }
+                                                   m_width(getUnit_N<3, value_type, 0>()),
+                                                   m_height(-getUnit_N<3, value_type, 1>()) { }
 
        /*!
         * Construct a screen from the given parameters
@@ -82,7 +88,8 @@ namespace scene {
          * @param j scalar value for the height
          * @return The resulting point
          */
-        [[nodiscard]] Point_3 getPointAt(double i, double j) const
+        template<IsFloatingPoint index_type>
+        [[nodiscard]] Point_3 getPointAt(index_type i, index_type j) const
         {
             if(i < 0.0 || i > 1.0 || j < 0.0 || j > 1.0) {
                 throw std::invalid_argument("i and j must be in the range [0.0, 1.0]. got i=" + std::to_string(i) + " and j=" + std::to_string(j));
@@ -127,13 +134,12 @@ namespace scene {
 
         void fromJson(const nlohmann::json& screen_json)
         {
-            std::vector<double> top_left{0, 0, 0};
-            std::vector<double> width{0, 0, 0};
-            std::vector<double> height{0, 0, 0};
-            auto vector_to_string = [] (auto val) { return "[" + std::to_string(val[0]) + ", " + std::to_string(val[1]) + ", " + std::to_string(val[2]) + "]"; };
+            std::vector<value_type> top_left{0, 0, 0};
+            std::vector<value_type> width{0, 0, 0};
+            std::vector<value_type> height{0, 0, 0};
 
             try {
-                top_left = screen_json.at("reference_corner").get<std::vector<double>>();
+                top_left = screen_json.at("reference_corner").get<std::vector<value_type>>();
                 if(top_left.size() != 3)
                 {
                     throw std::invalid_argument("'reference_corner' field must be specified in the form: [X, Y, Z]");
@@ -143,7 +149,7 @@ namespace scene {
             }
 
             try {
-                width = screen_json.at("width").get<std::vector<double>>();
+                width = screen_json.at("width").get<std::vector<value_type>>();
                 if(width.size() != 3)
                 {
                     throw std::invalid_argument("'width' field must be specified in the form: [X, Y, Z]");
@@ -153,7 +159,7 @@ namespace scene {
             }
 
             try {
-                height = screen_json.at("height").get<std::vector<double>>();
+                height = screen_json.at("height").get<std::vector<value_type>>();
                 if(height.size() != 3)
                 {
                     throw std::invalid_argument("'height' field must be specified in the form: [X, Y, Z]");

@@ -20,7 +20,7 @@
 
 namespace linear_algebra_core
 {
-    template <size_t N, IsArithmetic value_type = double>
+    template <size_t N, IsArithmetic value_type>
     class Point_X
     {
     private:
@@ -423,8 +423,4 @@ namespace linear_algebra_core
             return (a * t) + (b * (1.0 - t));
         }
     };
-
-    using Point_2 = Point_X<2>;
-    using Point_3 = Point_X<3>;
-    using Point_4 = Point_X<4>;
 }

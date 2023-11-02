@@ -5,15 +5,22 @@
 
 #include <memory>
 
+#include "LinearAlgebraTypeTraits.h"
+#include "Ray.h"
 #include "Screen.h"
 #include "Camera.h"
 #include "json.h"
 
 namespace scene {
+
+    template<IsFloatingPoint value_type>
     class Scene {
     private:
-        Camera m_camera;
-        Screen m_screen;
+        using Ray_3 = Ray<3, value_type>;
+
+        Camera<value_type> m_camera;
+        Screen<value_type> m_screen;
+
     public:
         Scene() = default;
         ~Scene() = default;
@@ -36,19 +43,20 @@ namespace scene {
          * @param j value for the y coordinate of the screen.
          * @return The resulting Ray
          */
-        [[nodiscard]] Ray getRayFor(double i, double j) const {
-            return Ray(m_camera.getPosition(), m_screen.getPointAt(i, j) - m_camera.getPosition());
+        template<IsFloatingPoint index_type>
+        [[nodiscard]] Ray_3 getRayFor(index_type i, index_type j) const {
+            return Ray_3(m_camera.getPosition(), m_screen.getPointAt(i, j) - m_camera.getPosition());
         }
 
         /*!
          * @return the Camera object
          */
-        [[nodiscard]] const Camera& getCamera() const { return m_camera; }
+        [[nodiscard]] const Camera<value_type>& getCamera() const { return m_camera; }
 
         /*!
          * @return the Scene object
          */
-        [[nodiscard]] const Screen& getScreen() const { return m_screen; }
+        [[nodiscard]] const Screen<value_type>& getScreen() const { return m_screen; }
 
         void fromJson(const nlohmann::json& scene_json)
         {
