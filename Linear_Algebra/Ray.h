@@ -11,10 +11,15 @@ namespace linear_algebra_core
     private:
         Point_X<N, value_type>  m_origin;
         Vector_X<N, value_type> m_direction;
+        Vector_X<N, value_type> m_inverse_direction;
 
     public:
         Ray() = default;
-        explicit Ray(const Point_X<N, value_type>& start, const Vector_X<N, value_type>& dir) : m_origin(start), m_direction(dir.getUnitVector()) { }
+        explicit Ray(const Point_X<N, value_type>& start, const Vector_X<N, value_type>& dir) :
+            m_origin{start},
+            m_direction{dir.getUnitVector()} ,
+            m_inverse_direction{m_direction.getInverse()}
+            { }
         ~Ray() = default;
         Ray(const Ray& other) = default;
         Ray(Ray&& other) noexcept = default;
@@ -71,6 +76,17 @@ namespace linear_algebra_core
          */
         [[maybe_unused]] void setDirection(const Vector_X<N, value_type>& new_direction) {
             m_direction = new_direction.getUnitVector();
+            m_inverse_direction = 1.0 / m_direction;
         }
+
+        /*!
+         * @return the inverse of the direction
+         */
+        const Vector_X<N, value_type>& getInverse() { return m_inverse_direction; }
+
+        /*!
+         * @return the inverse of the direction
+         */
+        [[nodiscard]] Vector_X<N, value_type> getInverse() const { return m_inverse_direction; }
     };
 }

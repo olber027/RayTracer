@@ -371,9 +371,53 @@ namespace linear_algebra_core
         /*!
          * @return the sum of each element of this point
          */
-        [[nodiscard]] [[maybe_unused]] inline value_type sum_elements() const
+        [[nodiscard]] [[maybe_unused]] inline value_type sumElements() const
         {
             return std::accumulate(cbegin(), cend(), static_cast<value_type>(0));
+        }
+
+        /*!
+         * @return the maximum element in the vector
+         */
+        [[nodiscard]] inline value_type getMaxValue() const
+        {
+            return *std::max_element(cbegin(), cend());
+        }
+
+        /*!
+         * @return the minimum element in the vector
+         */
+        [[nodiscard]] inline value_type getMinValue() const
+        {
+            return *std::min_element(cbegin(), cend());
+        }
+
+        /*!
+         * Passes each element of the point to /p func and assign the element the resulting value
+         * @param func a unary function that is given the current value of the element as a parameter
+         * @return this point, modified.
+         */
+        Point_X<N, value_type>& for_each(const std::function<value_type(const value_type &)>& func)
+        {
+            for(auto& val : m_values) {
+                val = func(val);
+            }
+            return *this;
+        }
+
+        /*!
+         * Passes each element of this point and the corresponding element of /p other to /p func and assigns this element the resulting value
+         * @param other another vector to operate on
+         * @param func the function that is given elements of this point and /p other
+         * @return this point, modified.
+         */
+        Point_X<N, value_type>& for_each(const Point_X<N, value_type>& other, const std::function<value_type(const value_type &, const value_type&)>& func)
+        {
+            for(auto this_it = begin(), other_it = other.cbegin(); this_it != end(); this_it++, other_it++)
+            {
+                *this_it = func(*this_it, *other_it);
+            }
+            return *this;
         }
 
         /*!
